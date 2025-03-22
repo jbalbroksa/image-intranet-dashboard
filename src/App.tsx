@@ -9,6 +9,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 
 // Pages
+import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
 import Companies from "@/pages/Companies";
 import CompanyDetails from "@/pages/CompanyDetails";
@@ -31,8 +32,8 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              <Route path="/" element={<Index />} />
               <Route element={<MainLayout />}>
-                <Route path="/" element={<Dashboard />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/companies" element={<Companies />} />
                 <Route path="/companies/:id" element={<CompanyDetails />} />
@@ -42,7 +43,6 @@ const App = () => (
                 <Route path="/branches" element={<Branches />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/news" element={<News />} />
-                {/* Add other routes as needed */}
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

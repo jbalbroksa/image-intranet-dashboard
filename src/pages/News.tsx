@@ -6,16 +6,25 @@ import { NewsHeader } from '@/components/news/NewsHeader';
 import { NewsFilters } from '@/components/news/NewsFilters';
 import { NewsGrid } from '@/components/news/NewsGrid';
 import { useNews } from '@/hooks/use-news';
-import type { News } from '@/types';
+import type { News as NewsType } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { CreateNewsForm } from '@/components/news/CreateNewsForm';
 
 export default function News() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
   const [filterCompany, setFilterCompany] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { user } = useAuth();
-  const { news, isLoadingNews, newsError } = useNews();
-  const [filteredNews, setFilteredNews] = useState<News[]>([]);
+  const { news, isLoadingNews, newsError, createNews } = useNews();
+  const [filteredNews, setFilteredNews] = useState<NewsType[]>([]);
 
   useEffect(() => {
     if (news) {
@@ -32,6 +41,10 @@ export default function News() {
   // Extraer categorías únicas para los filtros
   const categories = news ? [...new Set(news.map(item => item.category))] : [];
 
+  const handleCreateNewsSuccess = () => {
+    setIsCreateDialogOpen(false);
+  };
+
   if (newsError) {
     return (
       <div className="p-4 text-center">
@@ -43,7 +56,22 @@ export default function News() {
 
   return (
     <div className="animate-fade-in">
-      <NewsHeader />
+      <NewsHeader onCreateNews={() => setIsCreateDialogOpen(true)} />
+      
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Crear Nueva Noticia</DialogTitle>
+            <DialogDescription>
+              Completa el formulario para crear una nueva noticia.
+            </DialogDescription>
+          </DialogHeader>
+          <CreateNewsForm 
+            onSuccess={handleCreateNewsSuccess}
+            onCancel={() => setIsCreateDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
       
       {isLoadingNews ? (
         <div className="space-y-4">

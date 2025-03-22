@@ -1,129 +1,181 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '@/types';
-import { Session } from '@supabase/supabase-js';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import type { User } from '@/types';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  supabaseUser: SupabaseUser | null;
   session: Session | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  loading: boolean;
+  error: string | null;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  supabaseUser: null,
+  session: null,
+  signIn: async () => {},
+  signUp: async () => {},
+  signOut: async () => {},
+  loading: true,
+  error: null,
+});
 
-// Mock user for demo purposes
-const MOCK_USER: User = {
-  id: 'user-1',
-  name: 'José García',
-  email: 'jose@conectaseguros.com',
-  role: 'admin',
-  type: 'Administrador',
-  avatar: '/lovable-uploads/6d6736eb-dda1-4754-b5ef-0c42c4078fab.png',
-  branchId: 'branch-1',
-  position: 'Director de Tecnología',
-  extension: '26',
-  socialContact: '@JOSECONECTASEGUROS',
-  createdAt: '2023-01-15'
-};
+export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate fetching user data
-    const initAuth = async () => {
-      setIsLoading(true);
-      try {
-        // In a real app, we would fetch the user from an API
-        setTimeout(() => {
-          setUser(MOCK_USER);
-          // Mock session
-          setSession({
-            access_token: 'mock-token',
-            refresh_token: 'mock-refresh-token',
-            expires_in: 3600,
-            expires_at: Math.floor(Date.now() / 1000) + 3600,
-            user: {
-              id: MOCK_USER.id,
-              email: MOCK_USER.email,
-              app_metadata: {},
-              user_metadata: {},
-              aud: 'authenticated',
-              created_at: MOCK_USER.createdAt
-            }
-          } as unknown as Session);
-          setIsLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error('Authentication error:', error);
-        setUser(null);
-        setSession(null);
-        setIsLoading(false);
+    // Intenta recuperar la sesión al cargar
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setSupabaseUser(session?.user || null);
+      
+      if (session?.user) {
+        // Obtener datos del usuario de la tabla users
+        fetchUserData(session.user.id);
+      } else {
+        setLoading(false);
       }
-    };
+    });
 
-    initAuth();
+    // Escuchar cambios de autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setSupabaseUser(session?.user || null);
+        
+        if (session?.user) {
+          // Obtener datos del usuario de la tabla users
+          fetchUserData(session.user.id);
+        } else {
+          setUser(null);
+          setLoading(false);
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
+  const fetchUserData = async (userId: string) => {
     try {
-      // Mock successful login
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setUser(MOCK_USER);
-      // Set mock session
-      setSession({
-        access_token: 'mock-token',
-        refresh_token: 'mock-refresh-token',
-        expires_in: 3600,
-        expires_at: Math.floor(Date.now() / 1000) + 3600,
-        user: {
-          id: MOCK_USER.id,
-          email: MOCK_USER.email,
-          app_metadata: {},
-          user_metadata: {},
-          aud: 'authenticated',
-          created_at: MOCK_USER.createdAt
-        }
-      } as unknown as Session);
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        // Mapear datos a la interfaz User
+        setUser({
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          type: data.type,
+          avatar: data.avatar,
+          branchId: data.branch_id,
+          position: data.position,
+          extension: data.extension,
+          socialContact: data.social_contact,
+          createdAt: data.created_at
+        });
+      }
+    } catch (error: any) {
+      console.error('Error al obtener datos del usuario:', error.message);
+      setError(error.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setSession(null);
+  const signIn = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('Error de inicio de sesión:', error.message);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  const signUp = async (email: string, password: string, name: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
+      });
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+      if (error) throw error;
+      
+      // Nota: El usuario necesitará verificar su correo antes de poder iniciar sesión
+      // o se necesitará configurar Supabase para no requerir verificación
+    } catch (error: any) {
+      console.error('Error de registro:', error.message);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('Error al cerrar sesión:', error.message);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const value = {
+    user,
+    supabaseUser,
+    session,
+    signIn,
+    signUp,
+    signOut,
+    loading,
+    error,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

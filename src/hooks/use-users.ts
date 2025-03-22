@@ -41,14 +41,24 @@ export function useUsers() {
   const createUserMutation = useMutation({
     mutationFn: async (userData: Omit<User, 'id' | 'createdAt'> & { password: string }) => {
       // First create the user in auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
-        email_confirm: true
+        options: {
+          data: {
+            name: userData.name,
+            role: userData.role,
+            type: userData.type
+          }
+        }
       });
       
       if (authError) throw authError;
       
+      if (!authData.user?.id) {
+        throw new Error('No se pudo crear el usuario');
+      }
+
       // Map User interface to database fields
       const dbData = {
         id: authData.user.id,
@@ -136,7 +146,10 @@ export function useUsers() {
       // First delete the user from auth
       const { error: authError } = await supabase.auth.admin.deleteUser(id);
       
-      if (authError) throw authError;
+      if (authError) {
+        // If admin API fails, try to delete just the profile
+        console.error("Error deleting auth user:", authError);
+      }
       
       // Then delete the profile from the users table
       const { error } = await supabase
@@ -170,6 +183,9 @@ export function useUsers() {
     createUser: createUserMutation.mutate,
     updateUser: updateUserMutation.mutate,
     deleteUser: deleteUserMutation.mutate,
-    isLoading: isLoadingUsers || isLoading || createUserMutation.isPending || updateUserMutation.isPending || deleteUserMutation.isPending
+    isLoading: isLoadingUsers || isLoading || 
+               createUserMutation.isPending || 
+               updateUserMutation.isPending || 
+               deleteUserMutation.isPending
   };
 }

@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useUsers } from '@/hooks/use-users';
 import { UserRole, UserType } from '@/types';
 
 // User types
@@ -19,20 +18,21 @@ const USER_TYPES = [
 
 interface CreateUserFormProps {
   onSuccess: () => void;
+  onCancel: () => void;
 }
 
-export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
+  const { createUser, isLoading } = useUsers();
+  
   const [userData, setUserData] = useState({
     name: '',
     email: '',
     role: '',
     type: '',
-    branch: '',
+    branchId: '',
     position: '',
     extension: '',
-    social: '',
+    socialContact: '',
     password: ''
   });
   
@@ -42,50 +42,22 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
   
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    try {
-      // Primero registramos el usuario en auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        password: userData.password,
-        email_confirm: true
-      });
-      
-      if (authError) throw authError;
-      
-      // Luego creamos el perfil del usuario
-      const { error: userError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          name: userData.name,
-          email: userData.email,
-          role: userData.role as UserRole,
-          type: userData.type as UserType,
-          branch_id: userData.branch || null,
-          position: userData.position || null,
-          extension: userData.extension || null,
-          social_contact: userData.social || null
-        });
-      
-      if (userError) throw userError;
-      
-      toast({
-        title: 'Usuario creado',
-        description: 'El usuario ha sido creado correctamente',
-      });
-      
-      onSuccess();
-    } catch (error: any) {
-      toast({
-        title: 'Error al crear usuario',
-        description: error.message || 'Ocurrió un error al crear el usuario',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    createUser({
+      name: userData.name,
+      email: userData.email,
+      role: userData.role as UserRole,
+      type: userData.type as UserType,
+      branchId: userData.branchId || undefined,
+      position: userData.position || undefined,
+      extension: userData.extension || undefined,
+      socialContact: userData.socialContact || undefined,
+      password: userData.password
+    }, {
+      onSuccess: () => {
+        onSuccess();
+      }
+    });
   };
   
   const renderUserTypeOption = (type: string) => (
@@ -161,8 +133,8 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
             <Label htmlFor="branch">Sucursal *</Label>
             <Select 
               required
-              value={userData.branch}
-              onValueChange={(value) => handleChange('branch', value)}
+              value={userData.branchId}
+              onValueChange={(value) => handleChange('branchId', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona una sucursal" />
@@ -197,8 +169,8 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
             <Input 
               id="social" 
               placeholder="Ej: @usuario"
-              value={userData.social}
-              onChange={(e) => handleChange('social', e.target.value)}
+              value={userData.socialContact}
+              onChange={(e) => handleChange('socialContact', e.target.value)}
             />
           </div>
         </div>
@@ -217,6 +189,9 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
         </div>
       </div>
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel} className="mt-2 sm:mt-0">
+          Cancelar
+        </Button>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? 'Creando...' : 'Crear Usuario'}
         </Button>

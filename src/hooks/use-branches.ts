@@ -30,8 +30,8 @@ export function useBranches() {
         province: branch.province,
         contactPerson: branch.contact_person,
         email: branch.email,
-        phone: branch.phone,
-        website: branch.website,
+        phone: branch.phone || null,
+        website: branch.website || null,
         createdAt: branch.created_at
       })) as Branch[];
     }
@@ -57,8 +57,8 @@ export function useBranches() {
       province: data.province,
       contactPerson: data.contact_person,
       email: data.email,
-      phone: data.phone,
-      website: data.website,
+      phone: data.phone || null,
+      website: data.website || null,
       createdAt: data.created_at
     } as Branch;
   };
@@ -116,8 +116,8 @@ export function useBranches() {
       if (rest.province) dbData.province = rest.province;
       if (rest.contactPerson) dbData.contact_person = rest.contactPerson;
       if (rest.email) dbData.email = rest.email;
-      if (rest.phone) dbData.phone = rest.phone;
-      if (rest.website) dbData.website = rest.website;
+      if (rest.phone !== undefined) dbData.phone = rest.phone;
+      if (rest.website !== undefined) dbData.website = rest.website;
       
       const { error } = await supabase
         .from('branches')

@@ -1,21 +1,12 @@
 
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, Package, Pencil, Trash2, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { ProductHeader } from '@/components/products/ProductHeader';
+import { ProductAuthor } from '@/components/products/ProductAuthor';
+import { ProductTabs } from '@/components/products/ProductTabs';
 
 // Mock product for the product details
 const MOCK_PRODUCT = {
@@ -71,150 +62,24 @@ export default function ProductDetails() {
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-6">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/products">Productos</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink>{product.name}</BreadcrumbLink>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </div>
+      <ProductHeader 
+        product={product} 
+        onEdit={handleEdit} 
+        onDelete={handleDelete} 
+      />
+      
+      <ProductAuthor 
+        author={product.author} 
+        createdAt={product.createdAt} 
+        updatedAt={product.updatedAt} 
+      />
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-md">
-            <Package className="h-8 w-8 text-primary" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-foreground tracking-tight">{product.name}</h1>
-              <Badge variant={product.status === 'published' ? 'default' : 'outline'}>
-                {product.status === 'published' ? 'Publicado' : 'Borrador'}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="secondary">{product.category}</Badge>
-              {product.subcategory && (
-                <Badge variant="outline">{product.subcategory}</Badge>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button onClick={handleEdit}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Editar
-          </Button>
-          <Button variant="destructive" onClick={handleDelete}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Eliminar
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/products">
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Volver
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 mb-6">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={product.author.avatar} />
-          <AvatarFallback>{product.author.name[0]}</AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="text-sm font-medium">{product.author.name}</div>
-          <div className="text-xs text-muted-foreground flex items-center gap-2">
-            <span>Publicado: {new Date(product.createdAt).toLocaleDateString()}</span>
-            {product.updatedAt !== product.createdAt && (
-              <>
-                <span>•</span>
-                <span>Actualizado: {new Date(product.updatedAt).toLocaleDateString()}</span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <Tabs defaultValue="description" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="description">Descripción</TabsTrigger>
-          <TabsTrigger value="processes">Procesos</TabsTrigger>
-          <TabsTrigger value="weaknesses">Debilidades</TabsTrigger>
-          <TabsTrigger value="comments">Observaciones</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="description" className="space-y-6">
-          {product.description ? (
-            <div className="prose max-w-none">
-              <p>{product.description}</p>
-            </div>
-          ) : (
-            <div className="py-12 text-center border border-dashed rounded-lg">
-              <FileText className="mx-auto h-10 w-10 text-muted-foreground/50 mb-3" />
-              <h3 className="text-lg font-medium mb-2">No hay descripción</h3>
-              <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                Aún no se ha añadido una descripción para este producto.
-              </p>
-              <Button onClick={handleEdit}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Añadir Descripción
-              </Button>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="processes" className="space-y-6">
-          <div className="py-12 text-center border border-dashed rounded-lg">
-            <FileText className="mx-auto h-10 w-10 text-muted-foreground/50 mb-3" />
-            <h3 className="text-lg font-medium mb-2">No hay procesos definidos</h3>
-            <p className="text-muted-foreground max-w-md mx-auto mb-4">
-              Aún no se han documentado los procesos para este producto.
-            </p>
-            <Button onClick={handleEdit}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Documentar Procesos
-            </Button>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="weaknesses" className="space-y-6">
-          <div className="py-12 text-center border border-dashed rounded-lg">
-            <FileText className="mx-auto h-10 w-10 text-muted-foreground/50 mb-3" />
-            <h3 className="text-lg font-medium mb-2">No hay debilidades identificadas</h3>
-            <p className="text-muted-foreground max-w-md mx-auto mb-4">
-              Aún no se han identificado debilidades para este producto.
-            </p>
-            <Button onClick={handleEdit}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Identificar Debilidades
-            </Button>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="comments" className="space-y-6">
-          <div className="py-12 text-center border border-dashed rounded-lg">
-            <FileText className="mx-auto h-10 w-10 text-muted-foreground/50 mb-3" />
-            <h3 className="text-lg font-medium mb-2">No hay observaciones</h3>
-            <p className="text-muted-foreground max-w-md mx-auto mb-4">
-              Aún no se han añadido observaciones para este producto.
-            </p>
-            <Button onClick={handleEdit}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Añadir Observaciones
-            </Button>
-          </div>
-        </TabsContent>
-      </Tabs>
+      <ProductTabs 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        description={product.description} 
+        onEdit={handleEdit} 
+      />
     </div>
   );
 }

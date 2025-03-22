@@ -9,7 +9,6 @@ import { ProductAuthor } from '@/components/products/ProductAuthor';
 import { ProductTabs } from '@/components/products/ProductTabs';
 import { useProducts } from '@/hooks/use-products';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Product, User } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductEmptyState } from '@/components/products/ProductEmptyState';
@@ -21,12 +20,11 @@ export default function ProductDetails() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('description');
   const [isLoading, setIsLoading] = useState(true);
-  const [product, setProduct] = useState<Product | null>(null);
-  const [authorData, setAuthorData] = useState<User | null>(null);
+  const [authorData, setAuthorData] = useState<any>(null);
   const { updateProduct, deleteProduct } = useProducts();
   
-  // Obtener producto por ID
-  const { data, isLoading: isLoadingProduct, error } = useQuery({
+  // Get product by ID
+  const { data: product, isLoading: isLoadingProduct, error } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
       if (!id) return null;
@@ -38,26 +36,38 @@ export default function ProductDetails() {
         .single();
       
       if (error) throw error;
-      return data as Product;
+      
+      // Map database fields to Product interface
+      return {
+        id: data.id,
+        name: data.name,
+        categoryId: data.category_id,
+        subcategoryId: data.subcategory_id,
+        companyId: data.company_id,
+        description: data.description,
+        status: data.status,
+        tags: data.tags as string[] | undefined,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        author: data.author
+      };
     },
     enabled: !!id
   });
   
-  // Cuando tengamos el producto, cargar los datos del autor
+  // When we have the product, load the author data
   useEffect(() => {
-    if (data) {
-      setProduct(data);
-      
-      // Cargar datos del autor
+    if (product) {
+      // Load author data
       const fetchAuthor = async () => {
         const { data: authorData, error } = await supabase
           .from('users')
           .select('*')
-          .eq('id', data.author)
+          .eq('id', product.author)
           .single();
         
         if (!error && authorData) {
-          setAuthorData(authorData as User);
+          setAuthorData(authorData);
         }
         
         setIsLoading(false);
@@ -65,7 +75,7 @@ export default function ProductDetails() {
       
       fetchAuthor();
     }
-  }, [data]);
+  }, [product]);
   
   const handleEdit = () => {
     toast({
@@ -85,7 +95,7 @@ export default function ProductDetails() {
       variant: "destructive"
     });
     
-    // Redirigir a la página de productos
+    // Redirect to the products page
     navigate('/products');
   };
 
@@ -123,10 +133,19 @@ export default function ProductDetails() {
     );
   }
 
+  // Get the category name from the categoryId for the ProductHeader
+  const productHeaderData = {
+    id: product.id,
+    name: product.name,
+    category: product.categoryId, // This should be the category name, but we're using the ID for now
+    subcategory: product.subcategoryId, // This should be the subcategory name, but we're using the ID for now
+    status: product.status
+  };
+
   return (
     <div className="animate-fade-in">
       <ProductHeader 
-        product={product} 
+        product={productHeaderData} 
         onEdit={handleEdit} 
         onDelete={handleDelete} 
       />

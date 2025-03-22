@@ -6,7 +6,7 @@ import { NewsHeader } from '@/components/news/NewsHeader';
 import { NewsFilters } from '@/components/news/NewsFilters';
 import { NewsGrid } from '@/components/news/NewsGrid';
 import { useNews } from '@/hooks/use-news';
-import { News } from '@/types';
+import type { News } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function News() {
@@ -64,6 +64,10 @@ export default function News() {
             filterCompany={filterCompany}
             onFilterCompany={setFilterCompany}
             categories={categories}
+            companies={news ? [...new Set(news.filter(item => item.companyId).map(item => ({ 
+              id: item.companyId as string, 
+              name: item.companyId as string 
+            })))] : []}
           />
 
           <Tabs defaultValue="all">

@@ -9,10 +9,10 @@ import { useAuth } from '@/context/AuthContext';
 export function useProducts() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { session } = useAuth();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Obtener todos los productos
+  // Get all products
   const { data: products, isLoading: isLoadingProducts, error: productsError } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
@@ -21,11 +21,25 @@ export function useProducts() {
         .select('*');
       
       if (error) throw error;
-      return data as Product[];
+      
+      // Map database fields to Product interface
+      return data.map(product => ({
+        id: product.id,
+        name: product.name,
+        categoryId: product.category_id,
+        subcategoryId: product.subcategory_id,
+        companyId: product.company_id,
+        description: product.description,
+        status: product.status,
+        tags: product.tags as string[] | undefined,
+        createdAt: product.created_at,
+        updatedAt: product.updated_at,
+        author: product.author
+      })) as Product[];
     }
   });
 
-  // Obtener un producto por ID
+  // Get a product by ID
   const getProduct = async (id: string) => {
     const { data, error } = await supabase
       .from('products')
@@ -34,22 +48,45 @@ export function useProducts() {
       .single();
     
     if (error) throw error;
-    return data as Product;
+    
+    // Map database fields to Product interface
+    return {
+      id: data.id,
+      name: data.name,
+      categoryId: data.category_id,
+      subcategoryId: data.subcategory_id,
+      companyId: data.company_id,
+      description: data.description,
+      status: data.status,
+      tags: data.tags as string[] | undefined,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      author: data.author
+    } as Product;
   };
 
-  // Crear un producto
+  // Create a product
   const createProductMutation = useMutation({
     mutationFn: async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'author'>) => {
-      if (!session?.user?.id) {
+      if (!user?.id) {
         throw new Error('Usuario no autenticado');
       }
       
+      // Map Product interface to database fields
+      const dbData = {
+        name: productData.name,
+        category_id: productData.categoryId,
+        subcategory_id: productData.subcategoryId,
+        company_id: productData.companyId,
+        description: productData.description,
+        status: productData.status,
+        tags: productData.tags,
+        author: user.id
+      };
+      
       const { error } = await supabase
         .from('products')
-        .insert({
-          ...productData,
-          author: session.user.id
-        });
+        .insert(dbData);
       
       if (error) throw error;
     },
@@ -69,16 +106,27 @@ export function useProducts() {
     }
   });
 
-  // Actualizar un producto
+  // Update a product
   const updateProductMutation = useMutation({
     mutationFn: async (productData: Partial<Product> & { id: string }) => {
       const { id, ...rest } = productData;
+      
+      // Map Product interface to database fields
+      const dbData: Record<string, any> = {
+        updated_at: new Date().toISOString()
+      };
+      
+      if (rest.name) dbData.name = rest.name;
+      if (rest.categoryId) dbData.category_id = rest.categoryId;
+      if (rest.subcategoryId !== undefined) dbData.subcategory_id = rest.subcategoryId;
+      if (rest.companyId) dbData.company_id = rest.companyId;
+      if (rest.description !== undefined) dbData.description = rest.description;
+      if (rest.status) dbData.status = rest.status;
+      if (rest.tags !== undefined) dbData.tags = rest.tags;
+      
       const { error } = await supabase
         .from('products')
-        .update({
-          ...rest,
-          updated_at: new Date().toISOString()
-        })
+        .update(dbData)
         .eq('id', id);
       
       if (error) throw error;
@@ -101,7 +149,7 @@ export function useProducts() {
     }
   });
 
-  // Eliminar un producto
+  // Delete a product
   const deleteProductMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -128,7 +176,7 @@ export function useProducts() {
     }
   });
 
-  // Obtener categorías de productos
+  // Get product categories
   const { data: categories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['productCategories'],
     queryFn: async () => {
@@ -137,16 +185,28 @@ export function useProducts() {
         .select('*');
       
       if (error) throw error;
-      return data as ProductCategory[];
+      
+      // Map database fields to ProductCategory interface
+      return data.map(category => ({
+        id: category.id,
+        name: category.name,
+        parentId: category.parent_id
+      })) as ProductCategory[];
     }
   });
 
-  // Crear categoría de producto
+  // Create a product category
   const createCategoryMutation = useMutation({
     mutationFn: async (category: Omit<ProductCategory, 'id'>) => {
+      // Map ProductCategory interface to database fields
+      const dbData = {
+        name: category.name,
+        parent_id: category.parentId
+      };
+      
       const { error } = await supabase
         .from('product_categories')
-        .insert(category);
+        .insert(dbData);
       
       if (error) throw error;
     },

@@ -9,10 +9,10 @@ import { useAuth } from '@/context/AuthContext';
 export function useDocuments() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { session } = useAuth();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Obtener todos los documentos
+  // Get all documents
   const { data: documents, isLoading: isLoadingDocuments, error: documentsError } = useQuery({
     queryKey: ['documents'],
     queryFn: async () => {
@@ -22,11 +22,28 @@ export function useDocuments() {
         .order('uploaded_at', { ascending: false });
       
       if (error) throw error;
-      return data as Document[];
+      
+      // Map database fields to Document interface
+      return data.map(doc => ({
+        id: doc.id,
+        title: doc.title,
+        description: doc.description,
+        categoryId: doc.category_id,
+        companyId: doc.company_id,
+        productCategoryId: doc.product_category_id,
+        productSubcategoryId: doc.product_subcategory_id,
+        productId: doc.product_id,
+        tags: doc.tags as string[] | undefined,
+        fileUrl: doc.file_url,
+        fileType: doc.file_type,
+        fileSize: doc.file_size,
+        uploadedBy: doc.uploaded_by,
+        uploadedAt: doc.uploaded_at
+      })) as Document[];
     }
   });
 
-  // Subir un archivo al bucket de almacenamiento
+  // Upload a file to the storage bucket
   const uploadFile = async (file: File, path: string = '') => {
     const fileName = `${Date.now()}_${file.name}`;
     const filePath = path ? `${path}/${fileName}` : fileName;
@@ -37,7 +54,7 @@ export function useDocuments() {
     
     if (error) throw error;
     
-    // Obtener URL pública del archivo
+    // Get public URL of the file
     const { data: urlData } = supabase.storage
       .from('documents')
       .getPublicUrl(filePath);
@@ -51,28 +68,38 @@ export function useDocuments() {
     };
   };
 
-  // Crear un documento (incluye subir el archivo)
+  // Create a document (includes uploading the file)
   const createDocumentMutation = useMutation({
     mutationFn: async (documentData: Omit<Document, 'id' | 'uploadedAt' | 'uploadedBy' | 'fileUrl' | 'fileType' | 'fileSize'> & { file: File }) => {
-      if (!session?.user?.id) {
+      if (!user?.id) {
         throw new Error('Usuario no autenticado');
       }
       
       const { file, ...rest } = documentData;
       
-      // Subir el archivo
+      // Upload the file
       const fileData = await uploadFile(file);
       
-      // Crear el documento
+      // Map Document interface to database fields
+      const dbData = {
+        title: rest.title,
+        description: rest.description,
+        category_id: rest.categoryId,
+        company_id: rest.companyId,
+        product_category_id: rest.productCategoryId,
+        product_subcategory_id: rest.productSubcategoryId,
+        product_id: rest.productId,
+        tags: rest.tags,
+        file_url: fileData.fileUrl,
+        file_type: fileData.fileType,
+        file_size: fileData.fileSize,
+        uploaded_by: user.id
+      };
+      
+      // Create the document
       const { error } = await supabase
         .from('documents')
-        .insert({
-          ...rest,
-          file_url: fileData.fileUrl,
-          file_type: fileData.fileType,
-          file_size: fileData.fileSize,
-          uploaded_by: session.user.id
-        });
+        .insert(dbData);
       
       if (error) throw error;
     },
@@ -92,10 +119,10 @@ export function useDocuments() {
     }
   });
 
-  // Eliminar un documento
+  // Delete a document
   const deleteDocumentMutation = useMutation({
     mutationFn: async (id: string) => {
-      // Primero obtenemos la URL del archivo para eliminarlo del storage
+      // First get the file URL to delete it from storage
       const { data, error: fetchError } = await supabase
         .from('documents')
         .select('file_url')
@@ -104,18 +131,18 @@ export function useDocuments() {
       
       if (fetchError) throw fetchError;
       
-      // Extraer el nombre del archivo de la URL pública
+      // Extract the file name from the public URL
       const fileUrl = data.file_url;
       const filePath = fileUrl.split('/').pop();
       
-      // Eliminar el archivo
+      // Delete the file
       const { error: storageError } = await supabase.storage
         .from('documents')
         .remove([filePath]);
       
       if (storageError) throw storageError;
       
-      // Eliminar el registro del documento
+      // Delete the document record
       const { error } = await supabase
         .from('documents')
         .delete()

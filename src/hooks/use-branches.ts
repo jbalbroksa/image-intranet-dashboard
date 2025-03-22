@@ -10,7 +10,7 @@ export function useBranches() {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Obtener todas las sucursales
+  // Get all branches
   const { data: branches, isLoading: isLoadingBranches, error: branchesError } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
@@ -19,11 +19,25 @@ export function useBranches() {
         .select('*');
       
       if (error) throw error;
-      return data as Branch[];
+      
+      // Map database fields to Branch interface
+      return data.map(branch => ({
+        id: branch.id,
+        name: branch.name,
+        address: branch.address,
+        postalCode: branch.postal_code,
+        city: branch.city,
+        province: branch.province,
+        contactPerson: branch.contact_person,
+        email: branch.email,
+        phone: branch.phone,
+        website: branch.website,
+        createdAt: branch.created_at
+      })) as Branch[];
     }
   });
 
-  // Obtener una sucursal por ID
+  // Get a branch by ID
   const getBranch = async (id: string) => {
     const { data, error } = await supabase
       .from('branches')
@@ -32,15 +46,42 @@ export function useBranches() {
       .single();
     
     if (error) throw error;
-    return data as Branch;
+    
+    // Map database fields to Branch interface
+    return {
+      id: data.id,
+      name: data.name,
+      address: data.address,
+      postalCode: data.postal_code,
+      city: data.city,
+      province: data.province,
+      contactPerson: data.contact_person,
+      email: data.email,
+      phone: data.phone,
+      website: data.website,
+      createdAt: data.created_at
+    } as Branch;
   };
 
-  // Crear una sucursal
+  // Create a branch
   const createBranchMutation = useMutation({
     mutationFn: async (branchData: Omit<Branch, 'id' | 'createdAt'>) => {
+      // Map Branch interface to database fields
+      const dbData = {
+        name: branchData.name,
+        address: branchData.address,
+        postal_code: branchData.postalCode,
+        city: branchData.city,
+        province: branchData.province,
+        contact_person: branchData.contactPerson,
+        email: branchData.email,
+        phone: branchData.phone,
+        website: branchData.website
+      };
+      
       const { error } = await supabase
         .from('branches')
-        .insert(branchData);
+        .insert(dbData);
       
       if (error) throw error;
     },
@@ -60,13 +101,27 @@ export function useBranches() {
     }
   });
 
-  // Actualizar una sucursal
+  // Update a branch
   const updateBranchMutation = useMutation({
     mutationFn: async (branchData: Partial<Branch> & { id: string }) => {
       const { id, ...rest } = branchData;
+      
+      // Map Branch interface to database fields
+      const dbData: Record<string, any> = {};
+      
+      if (rest.name) dbData.name = rest.name;
+      if (rest.address) dbData.address = rest.address;
+      if (rest.postalCode) dbData.postal_code = rest.postalCode;
+      if (rest.city) dbData.city = rest.city;
+      if (rest.province) dbData.province = rest.province;
+      if (rest.contactPerson) dbData.contact_person = rest.contactPerson;
+      if (rest.email) dbData.email = rest.email;
+      if (rest.phone) dbData.phone = rest.phone;
+      if (rest.website) dbData.website = rest.website;
+      
       const { error } = await supabase
         .from('branches')
-        .update(rest)
+        .update(dbData)
         .eq('id', id);
       
       if (error) throw error;
@@ -89,7 +144,7 @@ export function useBranches() {
     }
   });
 
-  // Eliminar una sucursal
+  // Delete a branch
   const deleteBranchMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
@@ -43,13 +42,13 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useCompanies } from '@/hooks/use-companies';
 import { EditCompanyForm } from '@/components/companies/EditCompanyForm';
 import { EditSpecificationForm } from '@/components/companies/EditSpecificationForm';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Mock related documents
 const MOCK_DOCUMENTS = [
   { id: 'doc-1', title: 'Condiciones Generales', type: 'PDF', size: '1.2 MB', date: '2023-03-15' },
   { id: 'doc-2', title: 'Procedimientos de Tramitación', type: 'DOCX', size: '850 KB', date: '2023-02-28' }

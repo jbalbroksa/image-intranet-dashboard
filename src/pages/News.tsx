@@ -56,7 +56,9 @@ export default function News() {
 
   return (
     <div className="animate-fade-in">
-      <NewsHeader onCreateNews={() => setIsCreateDialogOpen(true)} />
+      <NewsHeader 
+        onCreateNews={() => setIsCreateDialogOpen(true)} 
+      />
       
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">

@@ -1,71 +1,87 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/AuthContext';
 import { NewsHeader } from '@/components/news/NewsHeader';
 import { NewsFilters } from '@/components/news/NewsFilters';
 import { NewsGrid } from '@/components/news/NewsGrid';
-
-// Mock data for news
-const MOCK_NEWS = [
-  {
-    id: 'news-1',
-    title: 'Título 1',
-    content: 'Hola que tal?...',
-    excerpt: 'Hola que tal?...',
-    featured: true,
-    coverImage: '/lovable-uploads/f3f0a2d3-983b-4f4c-8a95-e5e21590ac60.png',
-    category: 'General',
-    companyId: 'company-1',
-    companyName: 'Albroksa Correduría de Seguros',
-    author: {
-      name: 'José',
-      avatar: '/lovable-uploads/6d6736eb-dda1-4754-b5ef-0c42c4078fab.png'
-    },
-    publishedAt: '2023-03-21'
-  }
-];
+import { useNews } from '@/hooks/use-news';
+import { News } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function News() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
   const [filterCompany, setFilterCompany] = useState<string | null>(null);
   const { user } = useAuth();
+  const { news, isLoadingNews, newsError } = useNews();
+  const [filteredNews, setFilteredNews] = useState<News[]>([]);
 
-  const filteredNews = MOCK_NEWS.filter(news => {
-    const matchesSearch = news.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory ? news.category === filterCategory : true;
-    const matchesCompany = filterCompany ? news.companyName === filterCompany : true;
-    return matchesSearch && matchesCategory && matchesCompany;
-  });
+  useEffect(() => {
+    if (news) {
+      const filtered = news.filter(item => {
+        const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = filterCategory ? item.category === filterCategory : true;
+        const matchesCompany = filterCompany ? item.companyId === filterCompany : true;
+        return matchesSearch && matchesCategory && matchesCompany;
+      });
+      setFilteredNews(filtered);
+    }
+  }, [news, searchTerm, filterCategory, filterCompany]);
+
+  // Extraer categorías únicas para los filtros
+  const categories = news ? [...new Set(news.map(item => item.category))] : [];
+
+  if (newsError) {
+    return (
+      <div className="p-4 text-center">
+        <h3 className="text-lg font-medium mb-2">Error al cargar noticias</h3>
+        <p className="text-muted-foreground">{newsError.message || 'Ocurrió un error inesperado'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
       <NewsHeader />
       
-      <NewsFilters 
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        filterCategory={filterCategory}
-        onFilterCategory={setFilterCategory}
-        filterCompany={filterCompany}
-        onFilterCompany={setFilterCompany}
-      />
+      {isLoadingNews ? (
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <Skeleton key={i} className="h-64 w-full rounded-lg" />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          <NewsFilters 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            filterCategory={filterCategory}
+            onFilterCategory={setFilterCategory}
+            filterCompany={filterCompany}
+            onFilterCompany={setFilterCompany}
+            categories={categories}
+          />
 
-      <Tabs defaultValue="all">
-        <TabsList className="mb-6">
-          <TabsTrigger value="all">Todas las Noticias</TabsTrigger>
-          <TabsTrigger value="featured">Destacadas</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all" className="mt-0">
-          <NewsGrid news={filteredNews} />
-        </TabsContent>
-        
-        <TabsContent value="featured" className="mt-0">
-          <NewsGrid news={filteredNews} showFeaturedOnly={true} />
-        </TabsContent>
-      </Tabs>
+          <Tabs defaultValue="all">
+            <TabsList className="mb-6">
+              <TabsTrigger value="all">Todas las Noticias</TabsTrigger>
+              <TabsTrigger value="featured">Destacadas</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="mt-0">
+              <NewsGrid news={filteredNews} />
+            </TabsContent>
+            
+            <TabsContent value="featured" className="mt-0">
+              <NewsGrid news={filteredNews.filter(item => item.featured)} showFeaturedOnly={true} />
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
     </div>
   );
 }

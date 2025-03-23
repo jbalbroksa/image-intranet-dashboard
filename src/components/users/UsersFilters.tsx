@@ -48,14 +48,14 @@ export function UsersFilters({
         <div className="w-full md:w-1/2">
           <Label htmlFor="role">Filtrar por rol</Label>
           <Select
-            value={filterRole || ""}
-            onValueChange={(value) => onFilterRole(value || null)}
+            value={filterRole || "all"}
+            onValueChange={(value) => onFilterRole(value === "all" ? null : value)}
           >
             <SelectTrigger id="role" className="mt-1">
               <SelectValue placeholder="Todos los roles" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos los roles</SelectItem>
+              <SelectItem value="all">Todos los roles</SelectItem>
               {roles.map(role => (
                 <SelectItem key={role} value={role}>
                   {role === 'admin' ? 'Administrador' : 
@@ -74,14 +74,14 @@ export function UsersFilters({
         <div className="w-full md:w-1/2">
           <Label htmlFor="type">Filtrar por tipo</Label>
           <Select
-            value={filterType || ""}
-            onValueChange={(value) => onFilterType(value || null)}
+            value={filterType || "all"}
+            onValueChange={(value) => onFilterType(value === "all" ? null : value)}
           >
             <SelectTrigger id="type" className="mt-1">
               <SelectValue placeholder="Todos los tipos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos los tipos</SelectItem>
+              <SelectItem value="all">Todos los tipos</SelectItem>
               {types.map(type => (
                 <SelectItem key={type} value={type}>
                   {type}
@@ -94,14 +94,14 @@ export function UsersFilters({
         <div className="w-full md:w-1/2">
           <Label htmlFor="branch">Filtrar por sucursal</Label>
           <Select
-            value={filterBranch || ""}
-            onValueChange={(value) => onFilterBranch(value || null)}
+            value={filterBranch || "all"}
+            onValueChange={(value) => onFilterBranch(value === "all" ? null : value)}
           >
             <SelectTrigger id="branch" className="mt-1">
               <SelectValue placeholder="Todas las sucursales" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas las sucursales</SelectItem>
+              <SelectItem value="all">Todas las sucursales</SelectItem>
               {branches.map(branch => (
                 <SelectItem key={branch.id} value={branch.id}>
                   {branch.name}

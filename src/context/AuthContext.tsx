@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { User } from '@/types';
+import type { User, UserRole, UserType } from '@/types';
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 export interface AuthContextType {
@@ -86,8 +86,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: data.id,
           name: data.name,
           email: data.email,
-          role: data.role,
-          type: data.type,
+          role: data.role as UserRole,
+          type: data.type as UserType,
           avatar: data.avatar,
           branchId: data.branch_id,
           position: data.position,

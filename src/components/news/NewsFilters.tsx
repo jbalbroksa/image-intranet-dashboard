@@ -41,14 +41,14 @@ export function NewsFilters({
         <div className="w-full md:w-1/3">
           <Label htmlFor="category">Filtrar por categoría</Label>
           <Select
-            value={filterCategory || ""}
-            onValueChange={(value) => onFilterCategory(value || null)}
+            value={filterCategory || "all"}
+            onValueChange={(value) => onFilterCategory(value === "all" ? null : value)}
           >
             <SelectTrigger id="category" className="mt-1">
               <SelectValue placeholder="Todas las categorías" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas las categorías</SelectItem>
+              <SelectItem value="all">Todas las categorías</SelectItem>
               {categories.map(category => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -61,14 +61,14 @@ export function NewsFilters({
         <div className="w-full md:w-1/3">
           <Label htmlFor="company">Filtrar por compañía</Label>
           <Select
-            value={filterCompany || ""}
-            onValueChange={(value) => onFilterCompany(value || null)}
+            value={filterCompany || "all"}
+            onValueChange={(value) => onFilterCompany(value === "all" ? null : value)}
           >
             <SelectTrigger id="company" className="mt-1">
               <SelectValue placeholder="Todas las compañías" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas las compañías</SelectItem>
+              <SelectItem value="all">Todas las compañías</SelectItem>
               {companies.map(company => (
                 <SelectItem key={company.id} value={company.id}>
                   {company.name}

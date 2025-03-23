@@ -114,7 +114,7 @@ export default function Documents() {
                           <SelectValue placeholder="Ninguna" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="ninguna">Ninguna</SelectItem>
+                          <SelectItem value="none">Ninguna</SelectItem>
                           <SelectItem value="albroksa">Albroksa</SelectItem>
                           <SelectItem value="allianz">Allianz</SelectItem>
                           <SelectItem value="mapfre">Mapfre</SelectItem>
@@ -130,7 +130,7 @@ export default function Documents() {
                           <SelectValue placeholder="Ninguna" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="ninguna">Ninguna</SelectItem>
+                          <SelectItem value="none">Ninguna</SelectItem>
                           <SelectItem value="auto">Automóviles</SelectItem>
                           <SelectItem value="hogar">Hogar</SelectItem>
                           <SelectItem value="vida">Vida</SelectItem>
@@ -145,7 +145,7 @@ export default function Documents() {
                           <SelectValue placeholder="Ninguno" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="ninguno">Ninguno</SelectItem>
+                          <SelectItem value="none">Ninguno</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

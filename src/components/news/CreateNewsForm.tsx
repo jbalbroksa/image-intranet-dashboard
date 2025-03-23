@@ -105,7 +105,7 @@ export function CreateNewsForm({ onSuccess, onCancel }: CreateNewsFormProps) {
                 <SelectValue placeholder="Selecciona una compañía (opcional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Ninguna</SelectItem>
+                <SelectItem value="none">Ninguna</SelectItem>
                 {companies?.map(company => (
                   <SelectItem key={company.id} value={company.id}>
                     {company.name}

@@ -10,15 +10,28 @@ export function useCompanies() {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
+  // UUID validation helper function
+  const isValidUUID = (id: string): boolean => {
+    if (!id) return false;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
+  };
+
   // Get all companies
   const { data: companies, isLoading: isLoadingCompanies, error: companiesError } = useQuery({
     queryKey: ['companies'],
     queryFn: async () => {
+      console.log('Fetching all companies');
       const { data, error } = await supabase
         .from('companies')
         .select('*');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching companies:', error);
+        throw error;
+      }
+      
+      console.log('Companies fetched:', data);
       
       // Map database fields to Company interface
       return data.map(company => ({
@@ -38,13 +51,26 @@ export function useCompanies() {
 
   // Get a company by ID with its specifications
   const getCompany = async (id: string) => {
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      console.error('Invalid company ID format:', id);
+      throw new Error('Invalid company ID format');
+    }
+
+    console.log('Fetching company with ID:', id);
+    
     const { data, error } = await supabase
       .from('companies')
       .select('*')
       .eq('id', id)
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching company:', error);
+      throw error;
+    }
+    
+    console.log('Company data fetched:', data);
     
     // Get specifications
     const { data: specs, error: specsError } = await supabase
@@ -52,7 +78,12 @@ export function useCompanies() {
       .select('*')
       .eq('company_id', id);
     
-    if (specsError) throw specsError;
+    if (specsError) {
+      console.error('Error fetching company specifications:', specsError);
+      throw specsError;
+    }
+    
+    console.log('Company specifications fetched:', specs);
     
     // Map specifications
     const mappedSpecs = specs.map(spec => ({
@@ -80,6 +111,8 @@ export function useCompanies() {
   // Create a company
   const createCompanyMutation = useMutation({
     mutationFn: async (companyData: Omit<Company, 'id' | 'createdAt' | 'lastUpdated' | 'specifications'> & { specifications?: Omit<CompanySpecification, 'id' | 'companyId'>[] }) => {
+      console.log('Creating new company with data:', companyData);
+      
       const { specifications, ...companyInfo } = companyData;
       
       // Map Company interface to database fields
@@ -92,6 +125,8 @@ export function useCompanies() {
         classification: companyInfo.classification
       };
       
+      console.log('Prepared company data for insertion:', dbData);
+      
       // Insert the company
       const { data, error } = await supabase
         .from('companies')
@@ -99,10 +134,17 @@ export function useCompanies() {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating company:', error);
+        throw error;
+      }
+      
+      console.log('Company created successfully:', data);
       
       // If there are specifications, insert them
       if (specifications && specifications.length > 0) {
+        console.log('Inserting company specifications:', specifications);
+        
         const specsWithCompanyId = specifications.map(spec => ({
           category: spec.category,
           content: spec.content,
@@ -113,12 +155,18 @@ export function useCompanies() {
           .from('company_specifications')
           .insert(specsWithCompanyId);
         
-        if (specsError) throw specsError;
+        if (specsError) {
+          console.error('Error creating company specifications:', specsError);
+          throw specsError;
+        }
+        
+        console.log('Company specifications created successfully');
       }
       
       return data.id;
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
+      console.log('Company creation success callback with ID:', id);
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
         title: 'Compañía creada',
@@ -126,6 +174,7 @@ export function useCompanies() {
       });
     },
     onError: (error: any) => {
+      console.error('Company creation error:', error);
       toast({
         title: 'Error al crear compañía',
         description: error.message || 'Ocurrió un error al crear la compañía',
@@ -139,6 +188,14 @@ export function useCompanies() {
     mutationFn: async (companyData: Partial<Company> & { id: string, specifications?: (CompanySpecification | Omit<CompanySpecification, 'id' | 'companyId'>)[] }) => {
       const { id, specifications, ...companyInfo } = companyData;
       
+      // Validate UUID format
+      if (!isValidUUID(id)) {
+        console.error('Invalid company ID format:', id);
+        throw new Error('Invalid company ID format');
+      }
+      
+      console.log('Updating company with ID:', id, 'and data:', companyInfo);
+      
       // Map Company interface to database fields
       const dbData: Record<string, any> = {};
       
@@ -151,6 +208,8 @@ export function useCompanies() {
       
       dbData.last_updated = new Date().toISOString();
       
+      console.log('Prepared company data for update:', dbData);
+      
       // Update the company information
       if (Object.keys(dbData).length > 0) {
         const { error } = await supabase
@@ -158,17 +217,26 @@ export function useCompanies() {
           .update(dbData)
           .eq('id', id);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating company:', error);
+          throw error;
+        }
+        
+        console.log('Company updated successfully');
       }
       
       // If there are specifications, handle them
       if (specifications && specifications.length > 0) {
+        console.log('Processing company specifications:', specifications);
+        
         // Identify which have id (update) and which don't (insert)
         const toUpdate = specifications.filter(spec => 'id' in spec && spec.id);
         const toInsert = specifications.filter(spec => !('id' in spec) || !spec.id);
         
         // Insert new specifications
         if (toInsert.length > 0) {
+          console.log('Inserting new specifications:', toInsert);
+          
           const specsToInsert = toInsert.map(spec => ({
             category: spec.category,
             content: spec.content,
@@ -179,12 +247,19 @@ export function useCompanies() {
             .from('company_specifications')
             .insert(specsToInsert);
           
-          if (insertError) throw insertError;
+          if (insertError) {
+            console.error('Error inserting company specifications:', insertError);
+            throw insertError;
+          }
+          
+          console.log('New company specifications inserted successfully');
         }
         
         // Update existing specifications
         for (const spec of toUpdate) {
           const { id: specId, ...specData } = spec as CompanySpecification;
+          
+          console.log('Updating specification with ID:', specId);
           
           const dbSpecData = {
             category: specData.category,
@@ -197,13 +272,19 @@ export function useCompanies() {
             .update(dbSpecData)
             .eq('id', specId);
           
-          if (updateError) throw updateError;
+          if (updateError) {
+            console.error('Error updating company specification:', updateError);
+            throw updateError;
+          }
+          
+          console.log('Company specification updated successfully');
         }
       }
       
       return id;
     },
     onSuccess: (id) => {
+      console.log('Company update success callback with ID:', id);
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       queryClient.invalidateQueries({ queryKey: ['company', id] });
       toast({
@@ -212,6 +293,7 @@ export function useCompanies() {
       });
     },
     onError: (error: any) => {
+      console.error('Company update error:', error);
       toast({
         title: 'Error al actualizar compañía',
         description: error.message || 'Ocurrió un error al actualizar la compañía',
@@ -223,16 +305,30 @@ export function useCompanies() {
   // Delete a company
   const deleteCompanyMutation = useMutation({
     mutationFn: async (id: string) => {
+      // Validate UUID format
+      if (!isValidUUID(id)) {
+        console.error('Invalid company ID format:', id);
+        throw new Error('Invalid company ID format');
+      }
+      
+      console.log('Deleting company with ID:', id);
+      
       // Specifications will be deleted in cascade thanks to ON DELETE CASCADE constraint
       const { error } = await supabase
         .from('companies')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting company:', error);
+        throw error;
+      }
+      
+      console.log('Company deleted successfully');
       return id;
     },
     onSuccess: () => {
+      console.log('Company deletion success callback');
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
         title: 'Compañía eliminada',
@@ -240,6 +336,7 @@ export function useCompanies() {
       });
     },
     onError: (error: any) => {
+      console.error('Company deletion error:', error);
       toast({
         title: 'Error al eliminar compañía',
         description: error.message || 'Ocurrió un error al eliminar la compañía',
@@ -251,19 +348,41 @@ export function useCompanies() {
   // Delete a specification
   const deleteSpecificationMutation = useMutation({
     mutationFn: async (specId: string) => {
+      // Validate UUID format
+      if (!isValidUUID(specId)) {
+        console.error('Invalid specification ID format:', specId);
+        throw new Error('Invalid specification ID format');
+      }
+      
+      console.log('Deleting specification with ID:', specId);
+      
       const { error } = await supabase
         .from('company_specifications')
         .delete()
         .eq('id', specId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting company specification:', error);
+        throw error;
+      }
+      
+      console.log('Company specification deleted successfully');
       return specId;
     },
     onSuccess: () => {
+      console.log('Specification deletion success callback');
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
         title: 'Especificación eliminada',
         description: 'La especificación ha sido eliminada correctamente',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Specification deletion error:', error);
+      toast({
+        title: 'Error al eliminar especificación',
+        description: error.message || 'Ocurrió un error al eliminar la especificación',
+        variant: 'destructive'
       });
     }
   });

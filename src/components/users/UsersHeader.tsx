@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { CreateUserForm } from './CreateUserForm';
+import { useToast } from '@/hooks/use-toast';
 
 interface UsersHeaderProps {
   onUserCreated: () => void;
@@ -18,14 +19,22 @@ interface UsersHeaderProps {
 
 export function UsersHeader({ onUserCreated }: UsersHeaderProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const { toast } = useToast();
   
   const handleSuccess = () => {
     setIsCreateDialogOpen(false);
     onUserCreated();
+    toast({
+      title: "Usuario creado",
+      description: "El usuario ha sido creado exitosamente",
+    });
   };
   
   const handleCancel = () => {
     setIsCreateDialogOpen(false);
+    toast({
+      description: "Operación cancelada",
+    });
   };
   
   return (

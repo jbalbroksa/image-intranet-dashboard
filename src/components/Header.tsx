@@ -1,52 +1,70 @@
 
-import { Menu, BellDot, Settings } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, User } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/context/AuthContext';
-import NotificationBell from '@/components/NotificationBell';
+import { useNavigate } from 'react-router-dom';
 
-interface HeaderProps {
-  toggleSidebar: () => void;
-  sidebarOpen: boolean;
-}
+export function Header() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
-export default function Header({ toggleSidebar, sidebarOpen }: HeaderProps) {
-  const { user } = useAuth();
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
-    <header className="h-16 z-30 bg-background border-b border-border flex items-center justify-between px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="lg:hidden">
-          <Menu size={20} />
-          <span className="sr-only">Toggle menu</span>
-        </Button>
-        <div className="hidden md:flex md:items-center md:gap-2">
-          <h2 className="text-lg font-medium text-foreground">ConectaSeguros</h2>
-        </div>
+    <header className="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center justify-between border-b bg-background px-4 md:px-6">
+      <div className="flex items-center">
+        {/* Mobile menu button can go here if needed */}
       </div>
-
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3">
-          <NotificationBell />
-
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Settings size={20} />
-            <span className="sr-only">Settings</span>
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="hidden md:block text-right">
-            <p className="text-sm font-medium">{user?.name || 'Usuario'}</p>
-            <p className="text-xs text-muted-foreground">{user?.type || 'Administrador'}</p>
-          </div>
-          <Avatar className="h-9 w-9 border border-border">
-            <AvatarImage src={user?.avatar} alt={user?.name || 'Avatar'} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {user?.name?.charAt(0) || 'U'}
-            </AvatarFallback>
-          </Avatar>
-        </div>
+        <NotificationBell />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-2 p-1 md:px-2">
+              <Avatar className="h-8 w-8">
+                {user?.avatar ? (
+                  <AvatarImage src={user.avatar} alt={user?.name || ''} />
+                ) : (
+                  <AvatarFallback>{user?.name ? getInitials(user.name) : 'U'}</AvatarFallback>
+                )}
+              </Avatar>
+              <div className="hidden flex-col text-left md:flex">
+                <span className="text-sm font-medium">{user?.name || 'Usuario'}</span>
+                <span className="text-xs text-muted-foreground">{user?.type || user?.role || 'Rol no definido'}</span>
+              </div>
+              <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span>Perfil</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="flex items-center gap-2" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" />
+              <span>Cerrar sesión</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "@/layouts/MainLayout";
 import { AuthProvider } from "@/context/AuthContext";
 import { NotificationProvider } from "@/context/NotificationContext";
@@ -20,6 +20,8 @@ import Branches from "@/pages/Branches";
 import Users from "@/pages/Users";
 import News from "@/pages/News";
 import NotFound from "@/pages/NotFound";
+import Login from "@/pages/Login";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -32,8 +34,9 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route element={<MainLayout />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/companies" element={<Companies />} />
                 <Route path="/companies/:id" element={<CompanyDetails />} />

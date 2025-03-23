@@ -22,6 +22,7 @@ export function UsersHeader({ onUserCreated }: UsersHeaderProps) {
   const { toast } = useToast();
   
   const handleSuccess = () => {
+    console.log('User created successfully, closing dialog');
     setIsCreateDialogOpen(false);
     onUserCreated();
     toast({
@@ -31,6 +32,7 @@ export function UsersHeader({ onUserCreated }: UsersHeaderProps) {
   };
   
   const handleCancel = () => {
+    console.log('User creation cancelled, closing dialog');
     setIsCreateDialogOpen(false);
     toast({
       description: "Operación cancelada",

@@ -46,6 +46,7 @@ export function UsersHeader({ onUserCreated }: UsersHeaderProps) {
                 setIsCreateDialogOpen(false);
                 onUserCreated();
               }} 
+              onCancel={() => setIsCreateDialogOpen(false)}
             />
           </DialogContent>
         </Dialog>

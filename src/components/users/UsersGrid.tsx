@@ -3,14 +3,16 @@ import { Link } from 'react-router-dom';
 import { Plus, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserCard } from './UserCard';
+import { User, Branch } from '@/types';
 
 interface UsersGridProps {
-  users: any[];
+  users: User[];
+  branches?: Branch[];
   onCreateClick: () => void;
   showBranchesTab?: boolean;
 }
 
-export function UsersGrid({ users, onCreateClick, showBranchesTab = false }: UsersGridProps) {
+export function UsersGrid({ users, branches = [], onCreateClick, showBranchesTab = false }: UsersGridProps) {
   if (showBranchesTab) {
     return (
       <div className="py-12 text-center border border-dashed rounded-lg">
@@ -30,9 +32,21 @@ export function UsersGrid({ users, onCreateClick, showBranchesTab = false }: Use
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-      {users.map(user => (
-        <UserCard key={user.id} user={user} />
-      ))}
+      {users.map(user => {
+        // Find the branch name for this user
+        const branch = branches.find(b => b.id === user.branchId);
+        const branchName = branch ? branch.name : 'No asignada';
+        
+        return (
+          <UserCard 
+            key={user.id} 
+            user={{
+              ...user,
+              branch: branchName
+            }} 
+          />
+        );
+      })}
       
       <div className="flex items-center justify-center p-8 h-full bg-muted/30 border border-dashed rounded-lg">
         <Button onClick={onCreateClick}>

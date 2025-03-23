@@ -12,18 +12,26 @@ interface UserCardProps {
     name: string;
     email: string;
     avatar?: string;
-    initials?: string;
     role: string;
     type: string;
     branch: string;
     position?: string;
     extension?: string;
-    social?: string;
+    socialContact?: string;
     createdAt: string;
   };
 }
 
 export function UserCard({ user }: UserCardProps) {
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
     <Card className="overflow-hidden card-hover">
       <CardContent className="p-0">
@@ -34,7 +42,7 @@ export function UserCard({ user }: UserCardProps) {
                 {user.avatar ? (
                   <AvatarImage src={user.avatar} alt={user.name} />
                 ) : (
-                  <AvatarFallback>{user.initials || user.name[0]}</AvatarFallback>
+                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                 )}
               </Avatar>
               <div>
@@ -76,10 +84,10 @@ export function UserCard({ user }: UserCardProps) {
               </div>
             )}
             
-            {user.social && (
+            {user.socialContact && (
               <div className="flex items-center gap-3">
                 <Shield className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm">Telegram: {user.social}</p>
+                <p className="text-sm">Telegram: {user.socialContact}</p>
               </div>
             )}
           </div>

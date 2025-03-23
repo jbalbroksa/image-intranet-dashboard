@@ -15,9 +15,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface UsersHeaderProps {
   onUserCreated: () => void;
+  canCreateUsers?: boolean;
 }
 
-export function UsersHeader({ onUserCreated }: UsersHeaderProps) {
+export function UsersHeader({ onUserCreated, canCreateUsers = true }: UsersHeaderProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
   
@@ -45,28 +46,30 @@ export function UsersHeader({ onUserCreated }: UsersHeaderProps) {
         <h1 className="text-2xl font-bold text-foreground tracking-tight">Gestión de Usuarios</h1>
         <p className="text-muted-foreground">Administra los usuarios del sistema</p>
       </div>
-      <div className="mt-4 md:mt-0">
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Crear Usuario
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[550px]">
-            <DialogHeader>
-              <DialogTitle>Crear Usuario</DialogTitle>
-              <DialogDescription>
-                Añade un nuevo usuario al sistema. Los campos marcados con * son obligatorios.
-              </DialogDescription>
-            </DialogHeader>
-            <CreateUserForm 
-              onSuccess={handleSuccess} 
-              onCancel={handleCancel}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+      {canCreateUsers && (
+        <div className="mt-4 md:mt-0">
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Crear Usuario
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[550px]">
+              <DialogHeader>
+                <DialogTitle>Crear Usuario</DialogTitle>
+                <DialogDescription>
+                  Añade un nuevo usuario al sistema. Los campos marcados con * son obligatorios.
+                </DialogDescription>
+              </DialogHeader>
+              <CreateUserForm 
+                onSuccess={handleSuccess} 
+                onCancel={handleCancel}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
     </div>
   );
 }

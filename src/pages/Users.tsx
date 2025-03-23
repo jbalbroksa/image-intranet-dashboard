@@ -10,6 +10,9 @@ import { User } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,6 +24,10 @@ export default function Users() {
   
   const { users, isLoadingUsers, usersError } = useUsers();
   const { branches, isLoadingBranches, branchesError } = useBranches();
+  const { user: currentUser } = useAuth();
+  
+  // Check if user has permission to access users management
+  const hasAccessPermission = currentUser?.role === 'admin' || currentUser?.role === 'manager';
   
   const handleUserCreated = () => {
     setIsCreateDialogOpen(false);
@@ -46,6 +53,11 @@ export default function Users() {
   const roles = users ? [...new Set(users.map(user => user.role))] : [];
   const types = users ? [...new Set(users.map(user => user.type))] : [];
 
+  // Redirect users without proper permissions
+  if (!hasAccessPermission) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   if (usersError || branchesError) {
     return (
       <div className="p-4">
@@ -62,7 +74,10 @@ export default function Users() {
 
   return (
     <div className="animate-fade-in">
-      <UsersHeader onUserCreated={handleUserCreated} />
+      <UsersHeader 
+        onUserCreated={handleUserCreated} 
+        canCreateUsers={currentUser?.role === 'admin'} 
+      />
       
       {isLoadingUsers || isLoadingBranches ? (
         <div className="space-y-4">
@@ -99,14 +114,17 @@ export default function Users() {
               {filteredUsers.length > 0 ? (
                 <UsersGrid 
                   users={filteredUsers} 
+                  branches={branches || []}
                   onCreateClick={() => setIsCreateDialogOpen(true)} 
                 />
               ) : (
                 <div className="text-center py-8 border border-dashed rounded-lg">
                   <p className="text-muted-foreground mb-4">No se encontraron usuarios que coincidan con los criterios de búsqueda</p>
-                  <Button onClick={() => setIsCreateDialogOpen(true)}>
-                    Crear Nuevo Usuario
-                  </Button>
+                  {currentUser?.role === 'admin' && (
+                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                      Crear Nuevo Usuario
+                    </Button>
+                  )}
                 </div>
               )}
             </TabsContent>
@@ -124,6 +142,3 @@ export default function Users() {
     </div>
   );
 }
-
-// Make sure we import the Button component
-import { Button } from '@/components/ui/button';

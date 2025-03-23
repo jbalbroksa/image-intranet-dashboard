@@ -18,6 +18,7 @@ import Products from "@/pages/Products";
 import ProductDetails from "@/pages/ProductDetails";
 import Branches from "@/pages/Branches";
 import Users from "@/pages/Users";
+import UserDetail from "@/pages/UserDetail";
 import News from "@/pages/News";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/products/:id" element={<ProductDetails />} />
                 <Route path="/branches" element={<Branches />} />
                 <Route path="/users" element={<Users />} />
+                <Route path="/users/:id" element={<UserDetail />} />
                 <Route path="/news" element={<News />} />
               </Route>
               <Route path="*" element={<NotFound />} />

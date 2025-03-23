@@ -12,6 +12,12 @@ export function useProducts() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
+  // UUID validation helper function
+  const isValidUUID = (id: string): boolean => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
+  };
+
   // Get all products
   const { data: products, isLoading: isLoadingProducts, error: productsError } = useQuery({
     queryKey: ['products'],
@@ -41,6 +47,11 @@ export function useProducts() {
 
   // Get a product by ID
   const getProduct = async (id: string) => {
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      throw new Error('Invalid product ID format');
+    }
+
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -84,13 +95,15 @@ export function useProducts() {
         author: user.id
       };
       
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('products')
-        .insert(dbData);
+        .insert(dbData)
+        .select();
       
       if (error) throw error;
+      return data[0];
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
         title: 'Producto creado',
@@ -110,6 +123,11 @@ export function useProducts() {
   const updateProductMutation = useMutation({
     mutationFn: async (productData: Partial<Product> & { id: string }) => {
       const { id, ...rest } = productData;
+      
+      // Validate UUID format
+      if (!isValidUUID(id)) {
+        throw new Error('Invalid product ID format');
+      }
       
       // Map Product interface to database fields
       const dbData: Record<string, any> = {
@@ -152,6 +170,11 @@ export function useProducts() {
   // Delete a product
   const deleteProductMutation = useMutation({
     mutationFn: async (id: string) => {
+      // Validate UUID format
+      if (!isValidUUID(id)) {
+        throw new Error('Invalid product ID format');
+      }
+
       const { error } = await supabase
         .from('products')
         .delete()

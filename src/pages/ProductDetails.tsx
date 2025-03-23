@@ -23,11 +23,17 @@ export default function ProductDetails() {
   const [authorData, setAuthorData] = useState<any>(null);
   const { updateProduct, deleteProduct } = useProducts();
   
-  // Get product by ID
+  // Get product by ID - using UUID validation
   const { data: product, isLoading: isLoadingProduct, error } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
       if (!id) return null;
+      
+      // UUID validation - make sure the ID is a valid UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        throw new Error('Invalid product ID format');
+      }
       
       const { data, error } = await supabase
         .from('products')
@@ -60,6 +66,14 @@ export default function ProductDetails() {
     if (product) {
       // Load author data
       const fetchAuthor = async () => {
+        // UUID validation for author ID
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(product.author)) {
+          console.error('Invalid author ID format');
+          setIsLoading(false);
+          return;
+        }
+        
         const { data: authorData, error } = await supabase
           .from('users')
           .select('*')
@@ -103,7 +117,7 @@ export default function ProductDetails() {
     return (
       <div className="py-12 text-center">
         <h3 className="text-lg font-medium mb-2">Error al cargar el producto</h3>
-        <p className="text-muted-foreground mb-4">{error.message || 'No se pudo encontrar el producto'}</p>
+        <p className="text-muted-foreground mb-4">{(error as Error).message || 'No se pudo encontrar el producto'}</p>
         <Button asChild>
           <Link to="/products">Volver a Productos</Link>
         </Button>

@@ -6,7 +6,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -19,6 +18,15 @@ interface UsersHeaderProps {
 
 export function UsersHeader({ onUserCreated }: UsersHeaderProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
+  const handleSuccess = () => {
+    setIsCreateDialogOpen(false);
+    onUserCreated();
+  };
+  
+  const handleCancel = () => {
+    setIsCreateDialogOpen(false);
+  };
   
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -42,11 +50,8 @@ export function UsersHeader({ onUserCreated }: UsersHeaderProps) {
               </DialogDescription>
             </DialogHeader>
             <CreateUserForm 
-              onSuccess={() => {
-                setIsCreateDialogOpen(false);
-                onUserCreated();
-              }} 
-              onCancel={() => setIsCreateDialogOpen(false)}
+              onSuccess={handleSuccess} 
+              onCancel={handleCancel}
             />
           </DialogContent>
         </Dialog>

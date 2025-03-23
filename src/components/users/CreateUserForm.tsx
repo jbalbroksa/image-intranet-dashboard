@@ -1,11 +1,14 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUsers } from '@/hooks/use-users';
+import { useBranches } from '@/hooks/use-branches';
 import { UserRole, UserType } from '@/types';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // User types
 const USER_TYPES = [
@@ -23,6 +26,8 @@ interface CreateUserFormProps {
 
 export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
   const { createUser, isLoading } = useUsers();
+  const { branches } = useBranches();
+  const [error, setError] = useState<string | null>(null);
   
   const [userData, setUserData] = useState({
     name: '',
@@ -38,26 +43,56 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
   
   const handleChange = (field: string, value: string) => {
     setUserData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user changes something
+    if (error) setError(null);
   };
   
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    createUser({
-      name: userData.name,
-      email: userData.email,
-      role: userData.role as UserRole,
-      type: userData.type as UserType,
-      branchId: userData.branchId || undefined,
-      position: userData.position || undefined,
-      extension: userData.extension || undefined,
-      socialContact: userData.socialContact || undefined,
-      password: userData.password
-    }, {
-      onSuccess: () => {
-        onSuccess();
-      }
-    });
+    // Basic validation
+    if (!userData.name || !userData.email || !userData.role || !userData.type || !userData.branchId || !userData.password) {
+      setError('Por favor complete todos los campos obligatorios');
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userData.email)) {
+      setError('Por favor ingrese un correo electrónico válido');
+      return;
+    }
+    
+    // Password validation - at least 8 characters with letters and numbers
+    if (userData.password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+    
+    try {
+      createUser({
+        name: userData.name,
+        email: userData.email,
+        role: userData.role as UserRole,
+        type: userData.type as UserType,
+        branchId: userData.branchId,
+        position: userData.position || undefined,
+        extension: userData.extension || undefined,
+        socialContact: userData.socialContact || undefined,
+        password: userData.password
+      }, {
+        onSuccess: () => {
+          onSuccess();
+        },
+        onError: (err) => {
+          console.error("Error from createUser in form handler:", err);
+          setError(err instanceof Error ? err.message : 'Error al crear el usuario');
+        }
+      });
+    } catch (err) {
+      console.error("Exception in createUser form handler:", err);
+      setError(err instanceof Error ? err.message : 'Error al crear el usuario');
+    }
   };
   
   const renderUserTypeOption = (type: string) => (
@@ -69,6 +104,13 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
   return (
     <form onSubmit={handleCreateUser}>
       <div className="grid gap-4 py-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre completo *</Label>
@@ -140,7 +182,17 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
                 <SelectValue placeholder="Selecciona una sucursal" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="branch-1">Servicios Centrales</SelectItem>
+                {branches && branches.length > 0 ? (
+                  branches.map(branch => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-branches" disabled>
+                    No hay sucursales disponibles
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

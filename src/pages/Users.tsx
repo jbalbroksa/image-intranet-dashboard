@@ -8,6 +8,8 @@ import { useUsers } from '@/hooks/use-users';
 import { useBranches } from '@/hooks/use-branches';
 import { User } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,7 +20,7 @@ export default function Users() {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   
   const { users, isLoadingUsers, usersError } = useUsers();
-  const { branches, isLoadingBranches } = useBranches();
+  const { branches, isLoadingBranches, branchesError } = useBranches();
   
   const handleUserCreated = () => {
     setIsCreateDialogOpen(false);
@@ -40,15 +42,20 @@ export default function Users() {
     }
   }, [users, searchTerm, filterRole, filterType, filterBranch]);
 
-  // Extraer roles y tipos únicos para los filtros
+  // Extract unique roles and types for filters
   const roles = users ? [...new Set(users.map(user => user.role))] : [];
   const types = users ? [...new Set(users.map(user => user.type))] : [];
 
-  if (usersError) {
+  if (usersError || branchesError) {
     return (
-      <div className="p-4 text-center">
-        <h3 className="text-lg font-medium mb-2">Error al cargar usuarios</h3>
-        <p className="text-muted-foreground">{usersError.message || 'Ocurrió un error inesperado'}</p>
+      <div className="p-4">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            {usersError?.message || branchesError?.message || 'Ocurrió un error inesperado al cargar datos'}
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -89,10 +96,19 @@ export default function Users() {
             </TabsList>
             
             <TabsContent value="users" className="mt-0">
-              <UsersGrid 
-                users={filteredUsers} 
-                onCreateClick={() => setIsCreateDialogOpen(true)} 
-              />
+              {filteredUsers.length > 0 ? (
+                <UsersGrid 
+                  users={filteredUsers} 
+                  onCreateClick={() => setIsCreateDialogOpen(true)} 
+                />
+              ) : (
+                <div className="text-center py-8 border border-dashed rounded-lg">
+                  <p className="text-muted-foreground mb-4">No se encontraron usuarios que coincidan con los criterios de búsqueda</p>
+                  <Button onClick={() => setIsCreateDialogOpen(true)}>
+                    Crear Nuevo Usuario
+                  </Button>
+                </div>
+              )}
             </TabsContent>
             
             <TabsContent value="branches" className="mt-0">
@@ -108,3 +124,6 @@ export default function Users() {
     </div>
   );
 }
+
+// Make sure we import the Button component
+import { Button } from '@/components/ui/button';

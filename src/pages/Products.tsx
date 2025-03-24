@@ -20,7 +20,7 @@ import {
 import { ProductEmptyState } from '@/components/products/ProductEmptyState';
 import { ProductList } from '@/components/products/ProductList';
 import { useToast } from '@/hooks/use-toast';
-import { useProducts } from '@/hooks/use-products';
+import { useProducts } from '@/hooks/products/use-products';
 import { ProductCategory, Product } from '@/types';
 
 // Form schema for category

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -9,7 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { useProducts } from '@/hooks/use-products';
+import { useProducts } from '@/hooks/products/use-products';
 import { useCompanies } from '@/hooks/use-companies';
 import { ProductTabs } from '@/components/products/ProductTabs';
 import { ProductHeader } from '@/components/products/ProductHeader';
@@ -33,7 +32,6 @@ export default function ProductDetails() {
   
   const { companies } = useCompanies();
   
-  // Fetch the product data
   const { 
     data: product, 
     isLoading, 
@@ -47,7 +45,6 @@ export default function ProductDetails() {
     enabled: !!id
   });
   
-  // Handle delete product
   const handleDelete = () => {
     if (!id) return;
     
@@ -59,7 +56,6 @@ export default function ProductDetails() {
     navigate('/products');
   };
   
-  // Handle edit success
   const handleEditSuccess = () => {
     setIsEditDialogOpen(false);
     toast({
@@ -99,13 +95,10 @@ export default function ProductDetails() {
     );
   }
 
-  // Find company name
   const companyName = companies?.find(c => c.id === product.companyId)?.name || 'Compañía no encontrada';
   
-  // Find category name
   const categoryName = productCategories?.find(c => c.id === product.categoryId)?.name || 'Categoría no encontrada';
   
-  // Find subcategory name
   const subcategoryName = product.subcategoryId 
     ? productCategories?.find(c => c.id === product.subcategoryId)?.name 
     : null;

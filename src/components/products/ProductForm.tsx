@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { ProductCategory, Product } from '@/types';
-import { useProducts } from '@/hooks/use-products';
+import { useProducts } from '@/hooks/products/use-products';
 import { useCompanies } from '@/hooks/use-companies';
 
 // Form schema for product

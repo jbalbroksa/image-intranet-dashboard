@@ -1,4 +1,6 @@
 
+import { z } from "zod";
+
 // Form schema for category
 const categorySchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
@@ -19,3 +21,15 @@ const productSchema = z.object({
   status: z.enum(['draft', 'published']),
   tags: z.array(z.string()).optional(),
 });
+
+export interface ProductsProps {}
+
+const Products = () => {
+  return (
+    <div>
+      <h1>Products</h1>
+    </div>
+  );
+};
+
+export default Products;

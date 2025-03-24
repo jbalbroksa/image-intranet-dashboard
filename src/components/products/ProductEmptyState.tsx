@@ -19,7 +19,7 @@ export function ProductEmptyState({ title, description, onEdit, icon }: ProductE
       </p>
       <Button onClick={onEdit}>
         <Pencil className="mr-2 h-4 w-4" />
-        {title.startsWith('No hay') ? `Añadir ${title.substring(7)}` : 'Editar'}
+        {title && title.startsWith('No hay') ? `Añadir ${title.substring(7)}` : 'Editar'}
       </Button>
     </div>
   );

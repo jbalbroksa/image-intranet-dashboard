@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { z } from "zod";
+import { z } from 'zod';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ const productSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
-const Products = () => {
+function Products() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
@@ -86,7 +86,6 @@ const Products = () => {
     });
   };
 
-  // Mock function for creating a new category (you should implement the actual function)
   const handleCreateCategory = () => {
     const categoryData: Omit<ProductCategory, "id" | "subcategories"> = {
       name: "Nueva categoría",
@@ -95,7 +94,6 @@ const Products = () => {
     createCategory(categoryData);
   };
 
-  // Mock function for creating a new product (you should implement the actual function)
   const handleCreateProduct = () => {
     const productData: Omit<Product, "id" | "author" | "createdAt" | "updatedAt"> = {
       name: "Nuevo producto",
@@ -106,6 +104,22 @@ const Products = () => {
     };
     createProduct(productData);
   };
+
+  const handleAddProduct = () => {
+    // Navigate to create product page or open dialog
+    console.log('Add product clicked');
+  };
+
+  // Custom EmptyState for Products page
+  const ProductsEmptyState = () => (
+    <ProductEmptyState
+      title="No hay productos"
+      description={searchTerm 
+        ? `No se encontraron productos que coincidan con "${searchTerm}". Intenta con otro término o crea un nuevo producto.`
+        : "Aún no has creado ningún producto. Empieza creando tu primer producto."}
+      onEdit={() => handleAddProduct()}
+    />
+  );
 
   return (
     <div className="animate-fade-in">
@@ -212,12 +226,16 @@ const Products = () => {
           ))}
         </div>
       ) : filteredProducts && filteredProducts.length > 0 ? (
-        <ProductList products={filteredProducts} />
+        <ProductList 
+          products={filteredProducts} 
+          isLoading={isLoadingProducts} 
+          onAddProduct={handleAddProduct} 
+        />
       ) : (
-        <ProductEmptyState searchTerm={searchTerm} />
+        <ProductsEmptyState />
       )}
     </div>
   );
-};
+}
 
 export default Products;

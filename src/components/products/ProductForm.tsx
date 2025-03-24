@@ -17,6 +17,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { ProductCategory, Product } from '@/types';
+import { useProducts } from '@/hooks/use-products';
+import { useCompanies } from '@/hooks/use-companies';
 
 // Form schema for product
 const productSchema = z.object({
@@ -35,22 +37,19 @@ const productSchema = z.object({
 type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
-  onSubmit: (values: ProductFormValues) => void;
-  onCancel: () => void;
   initialData?: Partial<Product>;
-  categories?: ProductCategory[];
-  isEdit?: boolean;
-  companies?: { id: string; name: string }[];
+  onSuccess: () => void;
+  onCancel: () => void;
 }
 
 export function ProductForm({ 
-  onSubmit, 
-  onCancel, 
   initialData,
-  categories = [],
-  companies = [],
-  isEdit = false 
+  onSuccess, 
+  onCancel
 }: ProductFormProps) {
+  const { productCategories, updateProduct } = useProducts();
+  const { companies } = useCompanies();
+  
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -67,9 +66,19 @@ export function ProductForm({
     }
   });
 
+  const handleSubmit = (values: ProductFormValues) => {
+    if (initialData?.id) {
+      updateProduct({
+        id: initialData.id,
+        ...values
+      });
+      onSuccess();
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -119,7 +128,7 @@ export function ProductForm({
                     {...field}
                   >
                     <option value="">Selecciona una categoría</option>
-                    {categories.map(category => (
+                    {productCategories?.map(category => (
                       <option key={category.id} value={category.id}>
                         {category.name}
                       </option>
@@ -143,7 +152,7 @@ export function ProductForm({
                     {...field}
                   >
                     <option value="">Selecciona una compañía</option>
-                    {companies.map(company => (
+                    {companies?.map(company => (
                       <option key={company.id} value={company.id}>
                         {company.name}
                       </option>
@@ -262,7 +271,7 @@ export function ProductForm({
             Cancelar
           </Button>
           <Button type="submit">
-            {isEdit ? 'Actualizar Producto' : 'Crear Producto'}
+            {initialData?.id ? 'Actualizar Producto' : 'Crear Producto'}
           </Button>
         </div>
       </form>

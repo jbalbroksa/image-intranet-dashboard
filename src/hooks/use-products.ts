@@ -45,6 +45,9 @@ export function useProducts() {
         description: product.description,
         status: product.status,
         tags: product.tags as string[] | undefined,
+        strengths: product.strengths,
+        weaknesses: product.weaknesses,
+        processes: product.processes,
         createdAt: product.created_at,
         updatedAt: product.updated_at,
         author: product.author
@@ -85,6 +88,9 @@ export function useProducts() {
       description: data.description,
       status: data.status,
       tags: data.tags as string[] | undefined,
+      strengths: data.strengths,
+      weaknesses: data.weaknesses,
+      processes: data.processes,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       author: data.author
@@ -110,6 +116,9 @@ export function useProducts() {
         description: productData.description,
         status: productData.status,
         tags: productData.tags,
+        strengths: productData.strengths,
+        weaknesses: productData.weaknesses,
+        processes: productData.processes,
         author: user.id
       };
       
@@ -171,6 +180,9 @@ export function useProducts() {
       if (rest.description !== undefined) dbData.description = rest.description;
       if (rest.status) dbData.status = rest.status;
       if (rest.tags !== undefined) dbData.tags = rest.tags;
+      if (rest.strengths !== undefined) dbData.strengths = rest.strengths;
+      if (rest.weaknesses !== undefined) dbData.weaknesses = rest.weaknesses;
+      if (rest.processes !== undefined) dbData.processes = rest.processes;
       
       console.log('Prepared product data for update:', dbData);
       
@@ -248,7 +260,7 @@ export function useProducts() {
     }
   });
 
-  // Get product categories
+  // Get product categories with hierarchical structure
   const { data: categories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['productCategories'],
     queryFn: async () => {
@@ -264,38 +276,63 @@ export function useProducts() {
       
       console.log('Product categories fetched:', data);
       
-      // Map database fields to ProductCategory interface
-      return data.map(category => ({
-        id: category.id,
-        name: category.name,
-        parentId: category.parent_id
-      })) as ProductCategory[];
+      // Transform flat list to hierarchical structure
+      const categoriesMap = new Map<string, ProductCategory>();
+      
+      // First pass: Create all category objects
+      data.forEach(category => {
+        categoriesMap.set(category.id, {
+          id: category.id,
+          name: category.name,
+          parentId: category.parent_id,
+          description: category.description,
+          subcategories: []
+        });
+      });
+      
+      // Second pass: Build the hierarchy
+      const rootCategories: ProductCategory[] = [];
+      categoriesMap.forEach(category => {
+        if (category.parentId) {
+          const parent = categoriesMap.get(category.parentId);
+          if (parent && parent.subcategories) {
+            parent.subcategories.push(category);
+          }
+        } else {
+          rootCategories.push(category);
+        }
+      });
+      
+      return rootCategories;
     }
   });
 
   // Create a product category
   const createCategoryMutation = useMutation({
-    mutationFn: async (category: Omit<ProductCategory, 'id'>) => {
+    mutationFn: async (category: Omit<ProductCategory, 'id' | 'subcategories'>) => {
       console.log('Creating new product category with data:', category);
       
       // Map ProductCategory interface to database fields
       const dbData = {
         name: category.name,
-        parent_id: category.parentId
+        parent_id: category.parentId,
+        description: category.description
       };
       
       console.log('Prepared category data for insertion:', dbData);
       
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('product_categories')
-        .insert(dbData);
+        .insert(dbData)
+        .select();
       
       if (error) {
         console.error('Error creating product category:', error);
         throw error;
       }
       
-      console.log('Product category created successfully');
+      console.log('Product category created successfully:', data);
+      return data[0];
     },
     onSuccess: () => {
       console.log('Category creation success callback');
@@ -315,6 +352,154 @@ export function useProducts() {
     }
   });
 
+  // Update a product category
+  const updateCategoryMutation = useMutation({
+    mutationFn: async (categoryData: Partial<ProductCategory> & { id: string }) => {
+      const { id, subcategories, ...rest } = categoryData;
+      
+      // Validate UUID format
+      if (!isValidUUID(id)) {
+        console.error('Invalid category ID format:', id);
+        throw new Error('Invalid category ID format');
+      }
+      
+      console.log('Updating category with ID:', id, 'and data:', rest);
+      
+      // Map Category interface to database fields
+      const dbData: Record<string, any> = {};
+      
+      if (rest.name) dbData.name = rest.name;
+      if (rest.parentId !== undefined) dbData.parent_id = rest.parentId;
+      if (rest.description !== undefined) dbData.description = rest.description;
+      
+      console.log('Prepared category data for update:', dbData);
+      
+      const { error } = await supabase
+        .from('product_categories')
+        .update(dbData)
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error updating category:', error);
+        throw error;
+      }
+      
+      console.log('Category updated successfully');
+      return id;
+    },
+    onSuccess: () => {
+      console.log('Category update success callback');
+      queryClient.invalidateQueries({ queryKey: ['productCategories'] });
+      toast({
+        title: 'Categoría actualizada',
+        description: 'La categoría ha sido actualizada correctamente',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Category update error:', error);
+      toast({
+        title: 'Error al actualizar categoría',
+        description: error.message || 'Ocurrió un error al actualizar la categoría',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Delete a product category
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // Validate UUID format
+      if (!isValidUUID(id)) {
+        console.error('Invalid category ID format:', id);
+        throw new Error('Invalid category ID format');
+      }
+
+      console.log('Deleting category with ID:', id);
+      
+      // First check if this category has subcategories
+      const { data: subcategories, error: subcategoriesError } = await supabase
+        .from('product_categories')
+        .select('id')
+        .eq('parent_id', id);
+        
+      if (subcategoriesError) {
+        console.error('Error checking subcategories:', subcategoriesError);
+        throw subcategoriesError;
+      }
+      
+      if (subcategories && subcategories.length > 0) {
+        throw new Error('No se puede eliminar una categoría que tiene subcategorías');
+      }
+      
+      // Then check if there are products using this category
+      const { data: productsWithCategory, error: productsError } = await supabase
+        .from('products')
+        .select('id')
+        .eq('category_id', id);
+        
+      if (productsError) {
+        console.error('Error checking products with category:', productsError);
+        throw productsError;
+      }
+      
+      if (productsWithCategory && productsWithCategory.length > 0) {
+        throw new Error('No se puede eliminar una categoría que está siendo utilizada por productos');
+      }
+      
+      // Finally delete the category
+      const { error } = await supabase
+        .from('product_categories')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting category:', error);
+        throw error;
+      }
+      
+      console.log('Category deleted successfully');
+      return id;
+    },
+    onSuccess: () => {
+      console.log('Category deletion success callback');
+      queryClient.invalidateQueries({ queryKey: ['productCategories'] });
+      toast({
+        title: 'Categoría eliminada',
+        description: 'La categoría ha sido eliminada correctamente',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Category deletion error:', error);
+      toast({
+        title: 'Error al eliminar categoría',
+        description: error.message || 'Ocurrió un error al eliminar la categoría',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Get all categories as a flat list (for dropdowns, etc.)
+  const getFlatCategoriesList = () => {
+    if (!categories) return [];
+    
+    const flatList: ProductCategory[] = [];
+    
+    const flatten = (category: ProductCategory, depth = 0) => {
+      const indentedName = `${'  '.repeat(depth)}${category.name}`;
+      flatList.push({
+        ...category,
+        name: indentedName
+      });
+      
+      if (category.subcategories) {
+        category.subcategories.forEach(subcat => flatten(subcat, depth + 1));
+      }
+    };
+    
+    categories.forEach(category => flatten(category));
+    return flatList;
+  };
+
   return {
     products,
     isLoadingProducts,
@@ -324,12 +509,17 @@ export function useProducts() {
     updateProduct: updateProductMutation.mutate,
     deleteProduct: deleteProductMutation.mutate,
     categories,
+    flatCategories: getFlatCategoriesList(),
     isLoadingCategories,
     createCategory: createCategoryMutation.mutate,
+    updateCategory: updateCategoryMutation.mutate,
+    deleteCategory: deleteCategoryMutation.mutate,
     isLoading: isLoadingProducts || isLoading || 
                createProductMutation.isPending || 
                updateProductMutation.isPending || 
                deleteProductMutation.isPending ||
-               createCategoryMutation.isPending
+               createCategoryMutation.isPending ||
+               updateCategoryMutation.isPending ||
+               deleteCategoryMutation.isPending
   };
 }

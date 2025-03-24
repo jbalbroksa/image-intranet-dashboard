@@ -23,3 +23,29 @@ export function useFetchUsers() {
     }
   });
 }
+
+/**
+ * Hook to fetch a single user by ID
+ * @param id User ID
+ * @returns Query result with user data
+ */
+export function useFetchUserById(id?: string) {
+  return useQuery({
+    queryKey: ['user', id],
+    queryFn: async () => {
+      if (!id) throw new Error('User ID is required');
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      
+      // Map database fields to User interface
+      return mapDbUserToUser(data) as User;
+    },
+    enabled: !!id
+  });
+}

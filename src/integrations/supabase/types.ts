@@ -344,16 +344,19 @@ export type Database = {
       }
       product_categories: {
         Row: {
+          description: string | null
           id: string
           name: string
           parent_id: string | null
         }
         Insert: {
+          description?: string | null
           id?: string
           name: string
           parent_id?: string | null
         }
         Update: {
+          description?: string | null
           id?: string
           name?: string
           parent_id?: string | null
@@ -377,10 +380,13 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          processes: string | null
           status: string
+          strengths: string | null
           subcategory_id: string | null
           tags: Json | null
           updated_at: string
+          weaknesses: string | null
         }
         Insert: {
           author: string
@@ -390,10 +396,13 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          processes?: string | null
           status: string
+          strengths?: string | null
           subcategory_id?: string | null
           tags?: Json | null
           updated_at?: string
+          weaknesses?: string | null
         }
         Update: {
           author?: string
@@ -403,10 +412,13 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          processes?: string | null
           status?: string
+          strengths?: string | null
           subcategory_id?: string | null
           tags?: Json | null
           updated_at?: string
+          weaknesses?: string | null
         }
         Relationships: [
           {

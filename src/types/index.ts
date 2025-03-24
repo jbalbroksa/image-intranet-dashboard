@@ -54,6 +54,7 @@ export interface ProductCategory {
   id: string;
   name: string;
   parentId?: string;
+  description?: string;
   subcategories?: ProductCategory[];
 }
 
@@ -66,6 +67,9 @@ export interface Product {
   description?: string;
   status: 'draft' | 'published';
   tags?: string[];
+  strengths?: string;
+  weaknesses?: string;
+  processes?: string;
   createdAt: string;
   updatedAt: string;
   author: string;

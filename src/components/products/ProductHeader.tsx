@@ -1,46 +1,32 @@
 
 import { Link } from 'react-router-dom';
-import { Package } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Product } from '@/types';
+import { Plus } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { ProductCategory } from '@/types';
 
 interface ProductHeaderProps {
-  product: Product;
-  companyName: string;
-  categoryName: string;
-  subcategoryName: string | null;
+  onCreateCategory: () => void;
 }
 
-export function ProductHeader({ product, companyName, categoryName, subcategoryName }: ProductHeaderProps) {
+export function ProductHeader({ onCreateCategory }: ProductHeaderProps) {
   return (
-    <>
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-md">
-          <Package className="h-8 w-8 text-primary" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">{product.name}</h1>
-            <Badge variant={product.status === 'published' ? 'default' : 'outline'}>
-              {product.status === 'published' ? 'Publicado' : 'Borrador'}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <Badge variant="secondary">{categoryName}</Badge>
-            {subcategoryName && (
-              <Badge variant="outline">{subcategoryName}</Badge>
-            )}
-            <Badge variant="outline">{companyName}</Badge>
-          </div>
-        </div>
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Productos</h1>
+        <p className="text-muted-foreground">Gestión de productos y categorías</p>
       </div>
-    </>
+      <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-2">
+        <Button asChild>
+          <Link to="/products/create">
+            <Plus className="mr-2 h-4 w-4" />
+            Crear Producto
+          </Link>
+        </Button>
+        <Button variant="outline" onClick={onCreateCategory}>
+          <Plus className="mr-2 h-4 w-4" />
+          Crear Categoría
+        </Button>
+      </div>
+    </div>
   );
 }

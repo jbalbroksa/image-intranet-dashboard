@@ -48,7 +48,9 @@ function Products() {
     setIsCreateProductOpen(false);
   };
 
-  const handleCategoryFormSuccess = () => {
+  const handleCategoryFormSuccess = (values: any) => {
+    // Call the createCategory function with the form values
+    createCategory(values);
     setIsCreateCategoryOpen(false);
   };
 
@@ -115,7 +117,9 @@ function Products() {
             </DialogDescription>
           </DialogHeader>
           <CategoryForm
-            onClose={() => setIsCreateCategoryOpen(false)}
+            onSubmit={handleCategoryFormSuccess}
+            onCancel={() => setIsCreateCategoryOpen(false)}
+            categories={productCategories || []}
           />
         </DialogContent>
       </Dialog>

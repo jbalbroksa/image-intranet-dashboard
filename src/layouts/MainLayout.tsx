@@ -25,7 +25,7 @@ export default function MainLayout() {
         ${sidebarOpen || !isMobile ? 'translate-x-0' : '-translate-x-full'} 
         lg:translate-x-0 w-64 lg:w-72 bg-sidebar flex-shrink-0 border-r border-border`}
       >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Mobile overlay */}

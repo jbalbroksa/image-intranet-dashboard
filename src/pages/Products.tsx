@@ -115,8 +115,7 @@ function Products() {
             </DialogDescription>
           </DialogHeader>
           <CategoryForm
-            onSuccess={handleCategoryFormSuccess}
-            onCancel={() => setIsCreateCategoryOpen(false)}
+            onClose={() => setIsCreateCategoryOpen(false)}
           />
         </DialogContent>
       </Dialog>

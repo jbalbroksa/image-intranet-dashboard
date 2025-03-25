@@ -65,7 +65,21 @@ export function ProductForm({
       });
       onSuccess();
     } else {
-      createProduct(values);
+      // Ensure all required fields are present
+      const productData = {
+        name: values.name,
+        categoryId: values.categoryId,
+        companyId: values.companyId,
+        status: values.status,
+        subcategoryId: values.subcategoryId,
+        description: values.description || '',
+        strengths: values.strengths || '',
+        weaknesses: values.weaknesses || '',
+        processes: values.processes || '',
+        tags: values.tags || [],
+      };
+      
+      createProduct(productData);
       onSuccess();
     }
   };

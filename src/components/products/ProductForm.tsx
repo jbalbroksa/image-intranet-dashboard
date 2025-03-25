@@ -1,24 +1,15 @@
 
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { ProductCategory, Product } from '@/types';
+import { Form } from '@/components/ui/form';
+import { Product } from '@/types';
 import { useProducts } from '@/hooks/products/use-products';
 import { useCompanies } from '@/hooks/use-companies';
+import { ProductBasicFields } from './form/ProductBasicFields';
+import { ProductFormTabs } from './form/ProductFormTabs';
+import { ProductFormActions } from './form/ProductFormActions';
 
 // Form schema for product
 const productSchema = z.object({
@@ -77,204 +68,22 @@ export function ProductForm({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Título</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nombre del producto" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+    <FormProvider {...form}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <ProductBasicFields 
+            productCategories={productCategories} 
+            companies={companies} 
           />
           
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Estado</FormLabel>
-                <FormControl>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    {...field}
-                  >
-                    <option value="draft">Borrador</option>
-                    <option value="published">Publicado</option>
-                  </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          <ProductFormTabs />
+          
+          <ProductFormActions 
+            isEdit={!!initialData?.id} 
+            onCancel={onCancel} 
           />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Categoría</FormLabel>
-                <FormControl>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    {...field}
-                  >
-                    <option value="">Selecciona una categoría</option>
-                    {productCategories?.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="companyId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Compañía</FormLabel>
-                <FormControl>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    {...field}
-                  >
-                    <option value="">Selecciona una compañía</option>
-                    {companies?.map(company => (
-                      <option key={company.id} value={company.id}>
-                        {company.name}
-                      </option>
-                    ))}
-                  </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <Tabs defaultValue="description" className="w-full">
-          <TabsList className="w-full justify-start mb-4">
-            <TabsTrigger value="description">Descripción</TabsTrigger>
-            <TabsTrigger value="strengths">Fortalezas</TabsTrigger>
-            <TabsTrigger value="weaknesses">Debilidades</TabsTrigger>
-            <TabsTrigger value="processes">Procesos</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="description">
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descripción General</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Descripción general del producto" 
-                      className="resize-none min-h-[250px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Proporciona una descripción general del producto
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-          
-          <TabsContent value="strengths">
-            <FormField
-              control={form.control}
-              name="strengths"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fortalezas</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Principales fortalezas del producto" 
-                      className="resize-none min-h-[250px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Detalla las principales fortalezas y ventajas del producto
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-          
-          <TabsContent value="weaknesses">
-            <FormField
-              control={form.control}
-              name="weaknesses"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Debilidades</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Principales debilidades o limitaciones" 
-                      className="resize-none min-h-[250px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Detalla las principales limitaciones o debilidades del producto
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-          
-          <TabsContent value="processes">
-            <FormField
-              control={form.control}
-              name="processes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Procesos</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Procesos relacionados con el producto" 
-                      className="resize-none min-h-[250px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Detalla los procesos relacionados con este producto
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-        </Tabs>
-        
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
-          <Button type="submit">
-            {initialData?.id ? 'Actualizar Producto' : 'Crear Producto'}
-          </Button>
-        </div>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </FormProvider>
   );
 }

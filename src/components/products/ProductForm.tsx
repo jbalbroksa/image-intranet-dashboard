@@ -10,6 +10,7 @@ import { useCompanies } from '@/hooks/use-companies';
 import { ProductBasicFields } from './form/ProductBasicFields';
 import { ProductFormTabs } from './form/ProductFormTabs';
 import { ProductFormActions } from './form/ProductFormActions';
+import { getCurrentUserId } from '@/utils/setupSupabase';
 
 // Form schema for product
 const productSchema = z.object({
@@ -57,7 +58,7 @@ export function ProductForm({
     }
   });
 
-  const handleSubmit = (values: ProductFormValues) => {
+  const handleSubmit = async (values: ProductFormValues) => {
     if (initialData?.id) {
       updateProduct({
         id: initialData.id,
@@ -89,8 +90,8 @@ export function ProductForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <ProductBasicFields 
-            productCategories={productCategories} 
-            companies={companies} 
+            productCategories={productCategories || []} 
+            companies={companies || []} 
           />
           
           <ProductFormTabs />

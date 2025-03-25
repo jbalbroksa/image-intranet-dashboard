@@ -73,7 +73,7 @@ function Products() {
         searchTerm={searchTerm}
         selectedCategory={selectedCategory}
         selectedStatus={selectedStatus}
-        productCategories={productCategories}
+        productCategories={productCategories || []}
         onSearchChange={setSearchTerm}
         onCategoryChange={setSelectedCategory}
         onStatusChange={setSelectedStatus}

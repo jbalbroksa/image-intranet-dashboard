@@ -12,6 +12,7 @@ import { NotificationProvider } from "@/context/NotificationContext";
 import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
 import Companies from "@/pages/Companies";
+import CreateCompany from "@/pages/CreateCompany";
 import CompanyDetails from "@/pages/CompanyDetails";
 import Documents from "@/pages/Documents";
 import Products from "@/pages/Products";
@@ -41,6 +42,7 @@ const App = () => (
               <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/companies" element={<Companies />} />
+                <Route path="/companies/create" element={<CreateCompany />} />
                 <Route path="/companies/:id" element={<CompanyDetails />} />
                 <Route path="/documents" element={<Documents />} />
                 <Route path="/products" element={<Products />} />

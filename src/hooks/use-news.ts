@@ -18,7 +18,7 @@ export function useNews() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('news')
-        .select('*')
+        .select('*, profiles:author(name, avatar)')
         .order('published_at', { ascending: false });
       
       if (error) throw error;
@@ -34,7 +34,7 @@ export function useNews() {
         category: item.category,
         companyId: item.company_id,
         tags: item.tags as string[] | undefined,
-        author: item.author,
+        author: item.profiles || { name: 'Usuario desconocido' },
         publishedAt: item.published_at
       })) as News[];
     }
@@ -44,7 +44,7 @@ export function useNews() {
   const getNews = async (id: string) => {
     const { data, error } = await supabase
       .from('news')
-      .select('*')
+      .select('*, profiles:author(name, avatar)')
       .eq('id', id)
       .single();
     
@@ -61,7 +61,7 @@ export function useNews() {
       category: data.category,
       companyId: data.company_id,
       tags: data.tags as string[] | undefined,
-      author: data.author,
+      author: data.profiles || { name: 'Usuario desconocido' },
       publishedAt: data.published_at
     } as News;
   };

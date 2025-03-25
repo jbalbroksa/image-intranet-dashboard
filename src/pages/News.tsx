@@ -34,7 +34,19 @@ export default function News() {
         const matchesCompany = filterCompany ? item.companyId === filterCompany : true;
         return matchesSearch && matchesCategory && matchesCompany;
       });
-      setFilteredNews(filtered);
+      
+      // Ensure each news item has proper author structure
+      const processedNews = filtered.map(item => ({
+        ...item,
+        // Set default author object if none exists
+        author: item.author ? 
+          (typeof item.author === 'string' ? 
+            { name: item.author } : 
+            item.author) 
+          : { name: 'Unknown' }
+      }));
+      
+      setFilteredNews(processedNews);
     }
   }, [news, searchTerm, filterCategory, filterCompany]);
 

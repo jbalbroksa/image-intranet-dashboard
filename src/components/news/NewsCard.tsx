@@ -15,8 +15,8 @@ interface NewsCardProps {
     coverImage?: string;
     category: string;
     companyName?: string;
-    author: {
-      name: string;
+    author?: {
+      name?: string;
       avatar?: string;
     };
     publishedAt: string;
@@ -24,6 +24,10 @@ interface NewsCardProps {
 }
 
 export function NewsCard({ news }: NewsCardProps) {
+  // Make sure we have default values for potentially undefined properties
+  const authorName = news.author?.name || 'Unknown';
+  const authorInitial = authorName && authorName.length > 0 ? authorName[0] : 'U';
+  
   return (
     <Card key={news.id} className="overflow-hidden card-hover">
       <div className="aspect-video relative">
@@ -63,11 +67,11 @@ export function NewsCard({ news }: NewsCardProps) {
       <CardFooter className="px-4 py-3 border-t flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
-            <AvatarImage src={news.author.avatar} />
-            <AvatarFallback>{news.author.name[0]}</AvatarFallback>
+            <AvatarImage src={news.author?.avatar} />
+            <AvatarFallback>{authorInitial}</AvatarFallback>
           </Avatar>
           <div className="text-xs">
-            <span className="text-muted-foreground">{news.author.name}</span>
+            <span className="text-muted-foreground">{authorName}</span>
             <span className="text-muted-foreground ml-2">·</span>
             <span className="text-muted-foreground ml-2">
               {new Date(news.publishedAt).toLocaleDateString()}

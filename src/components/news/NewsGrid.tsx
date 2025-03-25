@@ -18,7 +18,7 @@ export function NewsGrid({ news, showFeaturedOnly = false }: NewsGridProps) {
         <NewsCard key={newsItem.id} news={newsItem} />
       ))}
       
-      {!showFeaturedOnly && (
+      {!showFeaturedOnly && filteredNews.length > 0 && (
         <div className="flex items-center justify-center p-8 h-full bg-muted/30 border border-dashed rounded-lg">
           <Button asChild>
             <Link to="/news/create">

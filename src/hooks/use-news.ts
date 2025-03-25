@@ -34,7 +34,7 @@ export function useNews() {
         category: item.category,
         companyId: item.company_id,
         tags: item.tags as string[] | undefined,
-        author: item.profiles || { name: 'Usuario desconocido' },
+        author: item.profiles || item.author,
         publishedAt: item.published_at
       })) as News[];
     }
@@ -61,7 +61,7 @@ export function useNews() {
       category: data.category,
       companyId: data.company_id,
       tags: data.tags as string[] | undefined,
-      author: data.profiles || { name: 'Usuario desconocido' },
+      author: data.profiles || data.author,
       publishedAt: data.published_at
     } as News;
   };

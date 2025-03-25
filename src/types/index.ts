@@ -102,7 +102,10 @@ export interface News {
   category: string;
   companyId?: string;
   tags?: string[];
-  author: string;
+  author: string | {
+    name?: string;
+    avatar?: string;
+  };
   publishedAt: string;
 }
 

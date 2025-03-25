@@ -15,7 +15,7 @@ interface NewsCardProps {
     coverImage?: string;
     category: string;
     companyName?: string;
-    author?: {
+    author: string | {
       name?: string;
       avatar?: string;
     };
@@ -24,9 +24,25 @@ interface NewsCardProps {
 }
 
 export function NewsCard({ news }: NewsCardProps) {
-  // Make sure we have default values for potentially undefined properties
-  const authorName = news.author?.name || 'Unknown';
-  const authorInitial = authorName && authorName.length > 0 ? authorName[0] : 'U';
+  // Handle author data which can be a string or an object
+  const getAuthorName = () => {
+    if (typeof news.author === 'string') {
+      return news.author;
+    }
+    return news.author?.name || 'Unknown';
+  };
+  
+  const getAuthorInitial = () => {
+    const name = getAuthorName();
+    return name && name.length > 0 ? name[0] : 'U';
+  };
+  
+  const getAuthorAvatar = () => {
+    if (typeof news.author === 'string') {
+      return undefined;
+    }
+    return news.author?.avatar;
+  };
   
   return (
     <Card key={news.id} className="overflow-hidden card-hover">
@@ -67,11 +83,11 @@ export function NewsCard({ news }: NewsCardProps) {
       <CardFooter className="px-4 py-3 border-t flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
-            <AvatarImage src={news.author?.avatar} />
-            <AvatarFallback>{authorInitial}</AvatarFallback>
+            <AvatarImage src={getAuthorAvatar()} />
+            <AvatarFallback>{getAuthorInitial()}</AvatarFallback>
           </Avatar>
           <div className="text-xs">
-            <span className="text-muted-foreground">{authorName}</span>
+            <span className="text-muted-foreground">{getAuthorName()}</span>
             <span className="text-muted-foreground ml-2">·</span>
             <span className="text-muted-foreground ml-2">
               {new Date(news.publishedAt).toLocaleDateString()}

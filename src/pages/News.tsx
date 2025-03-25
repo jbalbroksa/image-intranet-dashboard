@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/AuthContext';
@@ -35,18 +34,7 @@ export default function News() {
         return matchesSearch && matchesCategory && matchesCompany;
       });
       
-      // Ensure each news item has proper author structure
-      const processedNews = filtered.map(item => ({
-        ...item,
-        // Set default author object if none exists
-        author: item.author ? 
-          (typeof item.author === 'string' ? 
-            { name: item.author } : 
-            item.author) 
-          : { name: 'Unknown' }
-      }));
-      
-      setFilteredNews(processedNews);
+      setFilteredNews(filtered);
     }
   }, [news, searchTerm, filterCategory, filterCompany]);
 

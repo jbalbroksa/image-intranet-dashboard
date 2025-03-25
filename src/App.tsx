@@ -20,6 +20,7 @@ import Branches from "@/pages/Branches";
 import Users from "@/pages/Users";
 import UserDetail from "@/pages/UserDetail";
 import News from "@/pages/News";
+import Calendar from "@/pages/Calendar";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -48,6 +49,7 @@ const App = () => (
                 <Route path="/users" element={<Users />} />
                 <Route path="/users/:id" element={<UserDetail />} />
                 <Route path="/news" element={<News />} />
+                <Route path="/calendar" element={<Calendar />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

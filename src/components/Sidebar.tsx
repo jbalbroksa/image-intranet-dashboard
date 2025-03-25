@@ -1,109 +1,102 @@
-
-import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  PackageSearch, 
-  Building2, 
-  MapPin, 
-  Users, 
-  CalendarDays, 
+import React from "react";
+import {
+  Home,
+  Building2,
+  Package,
+  FileText,
+  MapPin,
+  Users,
   Newspaper,
-  Settings,
-  HelpCircle,
-  BarChart3,
-  Search,
-  FolderArchive,
-  ShieldCheck
-} from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+  Calendar as CalendarIcon,
+} from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 interface SidebarProps {
+  isOpen: boolean;
   onClose: () => void;
 }
 
-export default function Sidebar({ onClose }: SidebarProps) {
-  const { user } = useAuth();
-
-  const mainMenuItems = [
-    { icon: LayoutDashboard, label: 'Inicio', path: '/' },
-    { icon: LayoutDashboard, label: 'Panel', path: '/dashboard' },
-    { icon: FileText, label: 'Documentos', path: '/documents' },
-    { icon: PackageSearch, label: 'Productos', path: '/products' },
-    { icon: Building2, label: 'Compañías', path: '/companies' },
-    { icon: MapPin, label: 'Sucursales', path: '/branches' },
-    { icon: Users, label: 'Usuarios', path: '/users' },
-    { icon: CalendarDays, label: 'Calendario', path: '/calendar' },
-    { icon: Newspaper, label: 'Noticias', path: '/news' },
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const navigationItems = [
+    {
+      title: "Dashboard",
+      href: "/dashboard",
+      icon: Home,
+    },
+    {
+      title: "Compañías",
+      href: "/companies",
+      icon: Building2,
+    },
+    {
+      title: "Productos",
+      href: "/products",
+      icon: Package,
+    },
+    {
+      title: "Documentos",
+      href: "/documents",
+      icon: FileText,
+    },
+    {
+      title: "Sucursales",
+      href: "/branches",
+      icon: MapPin,
+    },
+    {
+      title: "Usuarios",
+      href: "/users",
+      icon: Users,
+    },
+    {
+      title: "Noticias",
+      href: "/news",
+      icon: Newspaper,
+    },
+    {
+      title: "Calendario",
+      href: "/calendar",
+      icon: CalendarIcon,
+    },
   ];
-
-  const quickAccessItems = [
-    { icon: ShieldCheck, label: 'Portal de Gestión', path: '/management-portal' },
-    { icon: Search, label: 'Buscador de Productos', path: '/product-search' },
-    { icon: HelpCircle, label: 'Centro de Soporte', path: '/support' },
-    { icon: BarChart3, label: 'Informes y Estadísticas', path: '/reports' },
-  ];
-
-  const footerMenuItems = [
-    { icon: Settings, label: 'Configuración', path: '/settings' },
-    { icon: HelpCircle, label: 'Ayuda', path: '/help' },
-  ];
-
-  const NavItem = ({ icon: Icon, label, path }: { icon: any; label: string; path: string }) => (
-    <NavLink 
-      to={path}
-      onClick={onClose}
-      className={({ isActive }) => 
-        `sidebar-item ${isActive ? 'active' : ''}`
-      }
-    >
-      <Icon size={20} />
-      <span>{label}</span>
-    </NavLink>
-  );
 
   return (
-    <div className="h-full flex flex-col bg-sidebar text-sidebar-foreground">
-      {/* Logo and platform name */}
-      <div className="p-4 border-b border-border flex items-center gap-3">
-        <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-white font-bold text-lg">
-          C
-        </div>
-        <div>
-          <h1 className="font-semibold text-foreground">ConectaSeguros</h1>
-          <p className="text-xs text-muted-foreground">Plataforma Intranet de Franquicia</p>
-        </div>
+    <aside
+      className={`fixed top-0 left-0 h-full w-64 bg-secondary border-r border-r-muted transition-transform transform ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0 z-50`}
+    >
+      <div className="flex items-center justify-between p-4">
+        <span className="font-bold">Lovable</span>
+        <button
+          className="lg:hidden text-muted-foreground hover:text-foreground"
+          onClick={onClose}
+        >
+          X
+        </button>
       </div>
-
-      {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-4 flex flex-col justify-between">
-        <div className="space-y-8 px-3">
-          <nav className="space-y-1">
-            {mainMenuItems.map((item) => (
-              <NavItem key={item.path} {...item} />
-            ))}
-          </nav>
-
-          <div>
-            <h2 className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Acceso Rápido
-            </h2>
-            <nav className="space-y-1">
-              {quickAccessItems.map((item) => (
-                <NavItem key={item.path} {...item} />
-              ))}
-            </nav>
-          </div>
-        </div>
-
-        <div className="mt-auto px-3">
-          <nav className="space-y-1">
-            {footerMenuItems.map((item) => (
-              <NavItem key={item.path} {...item} />
-            ))}
-          </nav>
-        </div>
-      </div>
-    </div>
+      <nav className="py-6">
+        <ul>
+          {navigationItems.map((item) => (
+            <li key={item.title} className="mb-2">
+              <NavLink
+                to={item.href}
+                className={({ isActive }) =>
+                  `flex items-center p-2 text-muted-foreground hover:text-foreground ${
+                    isActive ? "bg-accent text-foreground font-medium" : ""
+                  }`
+                }
+                onClick={onClose}
+              >
+                <item.icon className="mr-2 h-4 w-4" />
+                {item.title}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
   );
-}
+};
+
+export default Sidebar;

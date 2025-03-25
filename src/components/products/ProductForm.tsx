@@ -38,7 +38,7 @@ export function ProductForm({
   onSuccess, 
   onCancel
 }: ProductFormProps) {
-  const { productCategories, updateProduct } = useProducts();
+  const { productCategories, createProduct, updateProduct } = useProducts();
   const { companies } = useCompanies();
   
   const form = useForm<ProductFormValues>({
@@ -63,6 +63,9 @@ export function ProductForm({
         id: initialData.id,
         ...values
       });
+      onSuccess();
+    } else {
+      createProduct(values);
       onSuccess();
     }
   };

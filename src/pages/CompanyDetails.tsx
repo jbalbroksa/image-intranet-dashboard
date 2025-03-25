@@ -77,6 +77,7 @@ export default function CompanyDetails() {
       setIsLoadingCompany(true);
       try {
         const companyData = await getCompany(id);
+        console.log('Fetched company data:', companyData);
         setCompany(companyData);
       } catch (error) {
         console.error('Error fetching company:', error);

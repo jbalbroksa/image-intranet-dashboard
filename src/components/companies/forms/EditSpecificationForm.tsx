@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useCompanies } from '@/hooks/use-companies';
 import { CompanySpecification } from '@/types';
 import { Pencil, Save, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditSpecificationFormProps {
   specification: CompanySpecification;
@@ -20,6 +21,7 @@ export function EditSpecificationForm({
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(specification.content);
   const { updateCompany, isLoading } = useCompanies();
+  const { toast } = useToast();
   
   const handleSave = () => {
     const updatedSpec = {
@@ -33,6 +35,11 @@ export function EditSpecificationForm({
     });
     
     setIsEditing(false);
+    toast({
+      title: "Especificación actualizada",
+      description: `La especificación "${specification.category}" ha sido actualizada correctamente`,
+    });
+    
     if (onSuccess) onSuccess();
   };
   

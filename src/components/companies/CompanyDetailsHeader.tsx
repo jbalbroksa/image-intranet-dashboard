@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { EditCompanyForm } from './EditCompanyForm';
+import { EditCompanyForm } from './forms/EditCompanyForm';
 import { Company } from '@/types';
 
 interface CompanyDetailsHeaderProps {

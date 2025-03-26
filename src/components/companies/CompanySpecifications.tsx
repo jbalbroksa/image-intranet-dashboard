@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCompanies } from '@/hooks/use-companies';
 import { useToast } from '@/hooks/use-toast';
+import { NewSpecification } from '@/hooks/companies/use-update-company';
 
 interface CompanySpecificationsProps {
   company: Company;
@@ -32,7 +33,7 @@ export function CompanySpecifications({ company }: CompanySpecificationsProps) {
     if (!newCategory.trim()) return;
     
     // Create a new specification without an ID
-    const newSpec = {
+    const newSpec: NewSpecification = {
       category: newCategory.trim(),
       content: '',
     };

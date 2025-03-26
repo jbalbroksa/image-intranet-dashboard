@@ -12,7 +12,7 @@ const isValidUUID = (id: string): boolean => {
 };
 
 // Define a type for new specifications (without ID)
-type NewSpecification = Omit<CompanySpecification, 'id'>;
+export type NewSpecification = Omit<CompanySpecification, 'id'>;
 
 // Update a company hook
 export function useUpdateCompany() {

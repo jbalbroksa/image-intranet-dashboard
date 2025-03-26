@@ -11,6 +11,9 @@ const isValidUUID = (id: string): boolean => {
   return uuidRegex.test(id);
 };
 
+// Define a type for new specifications (without ID)
+type NewSpecification = Omit<CompanySpecification, 'id'>;
+
 // Update a company hook
 export function useUpdateCompany() {
   const { toast } = useToast();
@@ -19,7 +22,7 @@ export function useUpdateCompany() {
   return useMutation({
     mutationFn: async (companyData: Partial<Company> & { 
       id: string, 
-      specifications?: (CompanySpecification | Omit<CompanySpecification, 'id'>)[] 
+      specifications?: (CompanySpecification | NewSpecification)[] 
     }) => {
       const { id, specifications, ...companyInfo } = companyData;
       
@@ -65,8 +68,8 @@ export function useUpdateCompany() {
         console.log('Processing company specifications:', specifications);
         
         // Identify which have id (update) and which don't (insert)
-        const toUpdate = specifications.filter(spec => 'id' in spec && spec.id);
-        const toInsert = specifications.filter(spec => !('id' in spec) || !spec.id);
+        const toUpdate = specifications.filter(spec => 'id' in spec && spec.id) as CompanySpecification[];
+        const toInsert = specifications.filter(spec => !('id' in spec) || !spec.id) as NewSpecification[];
         
         // Insert new specifications
         if (toInsert.length > 0) {
@@ -92,7 +95,7 @@ export function useUpdateCompany() {
         
         // Update existing specifications
         for (const spec of toUpdate) {
-          const { id: specId, ...specData } = spec as CompanySpecification;
+          const { id: specId, ...specData } = spec;
           
           console.log('Updating specification with ID:', specId);
           

@@ -31,8 +31,8 @@ export function CompanySpecifications({ company }: CompanySpecificationsProps) {
   const handleAddSpecification = () => {
     if (!newCategory.trim()) return;
     
-    // The type needs to match what updateCompany expects
-    const newSpec: Omit<CompanySpecification, "id"> = {
+    // Create a new specification without an ID
+    const newSpec = {
       category: newCategory.trim(),
       content: '',
     };

@@ -24,7 +24,8 @@ export function EditSpecificationForm({
   const { toast } = useToast();
   
   const handleSave = () => {
-    const updatedSpec = {
+    // Make sure we include the id field since we're updating an existing specification
+    const updatedSpec: CompanySpecification = {
       ...specification,
       content
     };

@@ -17,7 +17,10 @@ export function useUpdateCompany() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (companyData: Partial<Company> & { id: string, specifications?: (CompanySpecification | Omit<CompanySpecification, 'id' | 'companyId'>)[] }) => {
+    mutationFn: async (companyData: Partial<Company> & { 
+      id: string, 
+      specifications?: (CompanySpecification | Omit<CompanySpecification, 'id'>)[] 
+    }) => {
       const { id, specifications, ...companyInfo } = companyData;
       
       // Validate UUID format

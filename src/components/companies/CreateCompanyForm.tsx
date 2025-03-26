@@ -37,8 +37,10 @@ export function CreateCompanyForm() {
       contactEmail: formData.contactEmail || undefined,
       classification: formData.classification,
       specifications: formData.specifications.length > 0 ? formData.specifications : undefined
-    }, () => {
-      navigate('/companies');
+    }, {
+      onSuccess: () => {
+        navigate('/companies');
+      }
     });
   };
   

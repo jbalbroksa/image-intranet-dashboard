@@ -215,27 +215,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "documents_product_category_id_fkey"
-            columns: ["product_category_id"]
-            isOneToOne: false
-            referencedRelation: "product_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_product_subcategory_id_fkey"
-            columns: ["product_subcategory_id"]
-            isOneToOne: false
-            referencedRelation: "product_categories"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "documents_uploaded_by_fkey"
             columns: ["uploaded_by"]
             isOneToOne: false
@@ -344,22 +323,28 @@ export type Database = {
       }
       product_categories: {
         Row: {
+          created_at: string | null
           description: string | null
           id: string
           name: string
           parent_id: string | null
+          updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
           description?: string | null
           id?: string
           name: string
           parent_id?: string | null
+          updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
           description?: string | null
           id?: string
           name?: string
           parent_id?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -376,7 +361,7 @@ export type Database = {
           author: string
           category_id: string
           company_id: string
-          created_at: string
+          created_at: string | null
           description: string | null
           id: string
           name: string
@@ -384,15 +369,15 @@ export type Database = {
           status: string
           strengths: string | null
           subcategory_id: string | null
-          tags: Json | null
-          updated_at: string
+          tags: string[] | null
+          updated_at: string | null
           weaknesses: string | null
         }
         Insert: {
           author: string
           category_id: string
           company_id: string
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           id?: string
           name: string
@@ -400,15 +385,15 @@ export type Database = {
           status: string
           strengths?: string | null
           subcategory_id?: string | null
-          tags?: Json | null
-          updated_at?: string
+          tags?: string[] | null
+          updated_at?: string | null
           weaknesses?: string | null
         }
         Update: {
           author?: string
           category_id?: string
           company_id?: string
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           id?: string
           name?: string
@@ -416,18 +401,11 @@ export type Database = {
           status?: string
           strengths?: string | null
           subcategory_id?: string | null
-          tags?: Json | null
-          updated_at?: string
+          tags?: string[] | null
+          updated_at?: string | null
           weaknesses?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "products_author_fkey"
-            columns: ["author"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "products_category_id_fkey"
             columns: ["category_id"]

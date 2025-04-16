@@ -22,7 +22,7 @@ export function useUpdateCompany() {
   return useMutation({
     mutationFn: async (companyData: Partial<Company> & { 
       id: string, 
-      specifications?: (CompanySpecification | NewSpecification)[] 
+      specifications?: Array<CompanySpecification | NewSpecification>
     }) => {
       const { id, specifications, ...companyInfo } = companyData;
       
@@ -68,8 +68,13 @@ export function useUpdateCompany() {
         console.log('Processing company specifications:', specifications);
         
         // Identify which have id (update) and which don't (insert)
-        const toUpdate = specifications.filter(spec => 'id' in spec && spec.id) as CompanySpecification[];
-        const toInsert = specifications.filter(spec => !('id' in spec) || !spec.id) as NewSpecification[];
+        const toUpdate = specifications.filter((spec): spec is CompanySpecification => 
+          'id' in spec && Boolean(spec.id)
+        );
+        
+        const toInsert = specifications.filter((spec): spec is NewSpecification => 
+          !('id' in spec) || !spec.id
+        );
         
         // Insert new specifications
         if (toInsert.length > 0) {
